@@ -1,6 +1,7 @@
 #include <dumanager.h>
 #include <DarkHelp.hpp>
 #include <easylogging++.h>
+#include <cv_funcs.h>
 
 void dutest(const std::string configFile, const std::string weightsFile,
             const std::string namesFile, const std::string inputFile) {
@@ -18,7 +19,7 @@ void dutest(const std::string configFile, const std::string weightsFile,
     darkhelp.threshold                      = 0.35;
     darkhelp.include_all_names              = false;
     darkhelp.names_include_percentage       = true;
-    darkhelp.annotation_include_duration    = true;
+    darkhelp.annotation_include_duration    = false;
     darkhelp.annotation_include_timestamp   = false;
     darkhelp.sort_predictions               = DarkHelp::ESort::kAscending;
 

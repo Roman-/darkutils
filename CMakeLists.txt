@@ -28,6 +28,11 @@ include_directories(${ini_parser_SOURCE_DIR})
 add_executable(darkutils
     src/main.cpp
     src/dumanager.cpp
+    src/cv_funcs.cpp
+    src/validation.cpp
+    src/du_common.cpp
+    src/du_tests.cpp
+    src/helpers.cpp
     )
 
 target_include_directories(darkutils PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src" ${OpenCV_INCLUDE_DIRS})

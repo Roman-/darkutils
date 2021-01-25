@@ -16,6 +16,9 @@ std::string getExecutablePath();
 // get full app path
 std::string applicationPath();
 
+// "/path/to/abc.txt" -> "abc"
+std::string extractFilenameFromFullPath(const std::string& path);
+
 // write text to file. Returns true if successful
 bool saveToFile(const std::string& path, const std::string& content, bool append = false);
 

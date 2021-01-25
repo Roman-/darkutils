@@ -14,6 +14,7 @@
 
 using std::string;
 using std::vector;
+using std::to_string;
 
 std::string getExecutablePath() {
     static std::string exePath;
@@ -27,6 +28,18 @@ std::string getExecutablePath() {
     }
     return exePath;
 }
+
+std::string extractFilenameFromFullPath(const std::string& pathOriginal) {
+    std::string s = pathOriginal;
+    // remove /path/to/
+    size_t lastIoSlash = s.find_last_of("/\\");
+    s = s.substr(lastIoSlash + 1);
+    size_t ioDot = s.find_last_of('.');
+    if (std::string::npos != ioDot)
+        s = s.substr(0, ioDot);
+    return s;
+}
+
 
 bool saveToFile(const std::string& path, const std::string& content, bool append) {
     std::ofstream outfile;
