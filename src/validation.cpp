@@ -80,7 +80,7 @@ ComparisonResults comparePredictions(cv::Mat img, const DarkHelp::PredictionResu
         if (classProbability < 0) {
             // loadedDet hasn't been detected
             LOG_IF(verbose, WARNING) << "Darknet doesn\'t see this ground truth detection: " << loadedDet.toString();
-            results.push_back({loadedDet.classId, loadedDet.bbox, -1, 0, filename});
+            results.push_back({loadedDet.classId, loadedDet.bbox, 0, 0, filename});
         }
     }
     // then look for false positives: find detections from *dets that do not intersect with ground truth
