@@ -21,17 +21,12 @@ int runIouTest(const std::string&) {
         IouTest{cv::Rect2f(.1,.1,.3,.3), cv::Rect2f(2,2,1,1), 0},
     };
     for (const auto& t: iouTests) {
-        float resIou = iou(t.r1, t.r2);
+        float resIou = intersectionOverUnion(t.r1, t.r2);
         if (fabsf(resIou - t.iou) > deltaIou) {
-            LOG(ERROR) << "IoU test failed: rects: " << rectToString(t.r1) << " and " << rectToString(t.r2)
+            LOG(ERROR) << "IoU test failed: rects: " << to_string(t.r1) << " and " << to_string(t.r2)
                 << " - expected iou = " << t.iou << ", got " << resIou;
             return -1;
         }
-    }
-    // relative
-    if (!strongIntersection(cv::Point2f(0.6, 0.6), cv::Size2f(1,1), cv::Rect2f(0,0,1,1))) {
-        LOG(ERROR) << "IoU relative strongIntersection test failed";
-        return -1;
     }
     return 0;
 }

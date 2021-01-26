@@ -9,11 +9,6 @@
 using std::to_string;
 static constexpr float kStrongIntersectionThresh = 0.45;
 
-template<class Tp>
-inline std::string rectToString(const cv::Rect_<Tp> r) {
-    return to_string(r.x) + ":" + to_string(r.y) + ":" + to_string(r.width) + "x" + to_string(r.height);
-}
-
 // returns relaive bbox of prediction result. Note that x,y are still the coordinates of top-left corner, just in [0,1] interval.
 inline cv::Rect2f relativeBbox(const DarkHelp::PredictionResult& r) {
     return cv::Rect2f(
@@ -48,6 +43,7 @@ struct ComparisonResult {
     float iou;
     std::string filename; // with no extension
 
+    // to specified format
     std::string toString() const;
 };
 typedef std::vector<ComparisonResult> ComparisonResults;
@@ -55,14 +51,13 @@ typedef std::vector<ComparisonResult> ComparisonResults;
 std::string to_string(const ComparisonResults& results);
 
 // rect to human-readable string (not compatible with darknet mark .txt files!)
-std::string to_string(const cv::Rect2f& r);
+template<class Tp>
+inline std::string to_string(const cv::Rect_<Tp> r) {
+    return to_string(r.x) + ":" + to_string(r.y) + ":" + to_string(r.width) + "x" + to_string(r.height);
+}
 
 // area of Intersection over area of Union [0-1]
-float iou(const cv::Rect2f& r1, const cv::Rect2f& r2);
-// returns true if iou > 0.45
-bool strongIntersection(const cv::Rect2f& r1, const cv::Rect2f& r2);
-// same as above but more convinient
-bool strongIntersection(const cv::Point2f& r1MidPoint, const cv::Size2f& r1RelativeSize, const cv::Rect2f& r2);
+float intersectionOverUnion(const cv::Rect2f& r1, const cv::Rect2f& r2);
 
 // returns list of filenames (training images) in folder without extension, sorted alphabetically
 std::vector<std::string> loadTrainImageFilenames(const std::string& path);

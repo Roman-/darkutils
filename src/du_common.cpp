@@ -36,7 +36,7 @@ bool LoadedDetection::isValid() const {
         && bbox.height >= 0 && bbox.height <= 1;
 }
 
-float iou(const cv::Rect2f& r1, const cv::Rect2f& r2) {
+float intersectionOverUnion(const cv::Rect2f& r1, const cv::Rect2f& r2) {
     float r1left = r1.x;
     float r1right = r1.x + r1.width;
     float r1top = r1.y;
@@ -73,7 +73,7 @@ std::vector<std::string> loadTrainImageFilenames(const std::string& path) {
         if (curr.size() < 5 || next.size() < 5 || curr.find(".jpg") == string::npos || next.find(".txt") == string::npos)
             continue;
         std::string baseFileName = curr.substr(0, curr.find('.'));
-        if (baseFileName.size() > 1 && next.rfind(baseFileName, 0) == 0) {
+        if (baseFileName.size() > 0 && next.rfind(baseFileName, 0) == 0) {
             result.push_back(baseFileName);
             ++i; // skip next file to skip the pair
         }
@@ -111,17 +111,4 @@ std::vector<LoadedDetection> loadDetsFromFile(const std::string& path) {
     }
 
     return result;
-}
-
-bool strongIntersection(const cv::Rect2f& r1, const cv::Rect2f& r2) {
-    return iou(r1, r2) > kStrongIntersectionThresh;
-}
-
-bool strongIntersection(const cv::Point2f& r1MidPoint, const cv::Size2f& r1RelativeSize, const cv::Rect2f& r2) {
-    cv::Rect2f r1 (
-            r1MidPoint.x - r1RelativeSize.width/2,
-            r1MidPoint.y - r1RelativeSize.height/2,
-            r1RelativeSize.width,
-            r1RelativeSize.height);
-    return strongIntersection(r1, r2);
 }
