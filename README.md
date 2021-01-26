@@ -1,5 +1,7 @@
 #darkutils
 
+This project is currently work-in-progress
+
 ## build
 Build & install darknet and darkhelp first:
 ```
