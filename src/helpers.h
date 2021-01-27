@@ -8,7 +8,7 @@
 // returns file contents as string
 std::string getFileContents(const std::string& filename);
 
-std::vector<std::string> getFileContentsAsStringVector(const std::string& filename, bool quiet);
+std::vector<std::string> getFileContentsAsStringVector(const std::string& filename, bool quiet = false);
 
 // returns absolute path to executable
 std::string getExecutablePath();

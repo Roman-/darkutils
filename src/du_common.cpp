@@ -9,8 +9,8 @@ using namespace std;
 std::string ComparisonResult::toString() const {
     float x = bbox.x + bbox.width / 2;
     float y = bbox.y + bbox.height / 2;
-    return to_string(classId) + " " + to_string(classId) + " " + to_string(x) + " " + to_string(y) + " "
-        + to_string(bbox.width) + " " + to_string(bbox.height) + " " + to_string(prob) + " " + to_string(iou) + " " + filename;
+    return to_string(classId) + " " + to_string(x) + " " + to_string(y) + " " + to_string(bbox.width)
+           + " " + to_string(bbox.height) + " " + to_string(prob) + " " + to_string(iou) + " " + filename;
 }
 
 std::string to_string(const ComparisonResults& results) {
@@ -112,3 +112,51 @@ std::vector<LoadedDetection> loadDetsFromFile(const std::string& path) {
 
     return result;
 }
+
+ComparisonResult ComparisonResult::fromString(const std::string& str) {
+    ComparisonResult r{-1, cv::Rect2f(), -1, -1, ""};
+    // c x y w h p iou filename
+    if (std::count(str.begin(), str.end(), ' ') < 7) {
+        LOG(ERROR) << "ComparisonResult: bad string " << str;
+        return r;
+    }
+    std::istringstream iss(str);
+    r.classId;
+
+    if (!(iss >> r.classId >> r.bbox.x >> r.bbox.y >> r.bbox.width >> r.bbox.height >> r.prob >> r.iou)) {
+        LOG(ERROR) << "maybe error";
+    }
+
+    // get the rest of the line as filename
+    constexpr int kMaxFileNameSize = 64;
+    char buff[kMaxFileNameSize] = {0};
+    iss.getline(buff, kMaxFileNameSize, '\n');
+
+    r.filename = std::string(buff).substr(1); // remove extra space form the beginning
+
+    return r;
+}
+
+bool ComparisonResult::isValid() const {
+    if (filename.empty() || string::npos != filename.find('/'))
+        return false;
+    if (classId < 0 || iou < 0 || prob < 0)
+        return false;
+    return true;
+}
+
+ComparisonResults comparisonResultsFromFile(const std::string& filename) {
+    ComparisonResults rs;
+    auto lines = getFileContentsAsStringVector(filename);
+    for (const auto& l: lines) {
+        ComparisonResult r = ComparisonResult::fromString(l);
+        if (r.isValid()) {
+            rs.push_back(r);
+        } else {
+            LOG(ERROR) << "Can not parse line to ComparisonResults: " << l;
+        }
+    }
+
+    return rs;
+}
+

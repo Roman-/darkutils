@@ -41,14 +41,19 @@ struct ComparisonResult {
     cv::Rect2f bbox; // relative bb as predicted by darknet
     float prob; // probability of that class (0-1). If marked by human but wasn't detected by darknet, prob = -1
     float iou;
-    std::string filename; // with no extension
+    std::string filename; // with no extension nor slashes
 
     // to specified format
     std::string toString() const;
+    // read from string in .duv format
+    static ComparisonResult fromString(const std::string& str);
+    // returns false if classId < 0, prop<0, iou < 0 or filename is empty or slashy
+    bool isValid() const;
 };
 typedef std::vector<ComparisonResult> ComparisonResults;
 // newline-separated results, with "\n" at the end as well
 std::string to_string(const ComparisonResults& results);
+ComparisonResults comparisonResultsFromFile(const std::string& filename);
 
 // rect to human-readable string (not compatible with darknet mark .txt files!)
 template<class Tp>
