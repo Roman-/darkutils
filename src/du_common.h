@@ -34,13 +34,17 @@ struct LoadedDetection {
     cv::Rect2f bbox;
     std::string filename;
 
-    // outputs detection as "c x y w h % iou filename", where (x,y) is relative mid-point, (w,h) is relative size
+    // to darknet-compatible string (class x y w h), where {x,y} is midpoint
     std::string toString() const;
+    // to human-readable string wtih filename specified
+    std::string toHumanString() const;
     // bbox is between 0 and 1; classId > 0, filename not empty
     bool isValid() const;
 };
 typedef std::vector<LoadedDetection> LoadedDetections;
 LoadedDetections loadedDetectionsFromFile(const std::string& filename);
+// Convert LoadedDetections to newline-seaprated string, compatible with darknet/yolomark format
+std::string to_string(const LoadedDetections& dets);
 int findDetection(const LoadedDetections& dets, const LoadedDetection& needle);
 
 struct ComparisonResult {
@@ -50,7 +54,7 @@ struct ComparisonResult {
     float iou;
     std::string filename; // with no extension nor slashes
 
-    // to specified format
+    // outputs detection as "c x y w h % iou filename", where (x,y) is relative mid-point, (w,h) is relative size
     std::string toString() const;
     // read from string in .duv format
     static ComparisonResult fromString(const std::string& str);
@@ -69,7 +73,7 @@ ComparisonResults comparisonResultsFromFile(const std::string& filename);
 
 // rect to human-readable string (not compatible with darknet mark .txt files!)
 template<class Tp>
-inline std::string to_string(const cv::Rect_<Tp> r) {
+inline std::string to_human_string(const cv::Rect_<Tp> r) {
     return to_string(r.x) + ":" + to_string(r.y) + ":" + to_string(r.width) + "x" + to_string(r.height);
 }
 

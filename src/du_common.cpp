@@ -17,15 +17,31 @@ std::string to_string(const ComparisonResults& results) {
     std::string s;
     for (const auto& r: results)
         s += r.toString() + "\n";
+    // remove last '\n'
+    if (!s.empty())
+        s.pop_back();
     return s;
 }
 
-std::string to_string(const cv::Rect2f& r) {
-    return to_string(r.x) + ":" + to_string(r.y) + ":" + to_string(r.width) + "x" + to_string(r.height);
+std::string to_string(const LoadedDetections& dets) {
+    std::string s;
+    for (const auto& d: dets)
+        s += d.toString() + "\n";
+    // remove last '\n'
+    if (!s.empty())
+        s.pop_back();
+    return s;
+}
+
+std::string LoadedDetection::toHumanString() const {
+    return to_string(classId) + " " + to_human_string(bbox) + ", " + filename;
 }
 
 std::string LoadedDetection::toString() const {
-    return to_string(classId) + " " + to_string(bbox) + ", " + filename;
+    float x = bbox.x + bbox.width / 2;
+    float y = bbox.y + bbox.height / 2;
+    return to_string(classId) + " " + to_string(x) + " " + to_string(y)
+            + " " + to_string(bbox.width) + " " + to_string(bbox.height);
 }
 
 bool LoadedDetection::isValid() const {

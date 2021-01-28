@@ -77,7 +77,7 @@ ComparisonResults comparePredictions(cv::Mat img, const DarkHelp::PredictionResu
         // no matching detection for this "ground truth" loadedDet
         if (classProbability < 0) {
             // loadedDet hasn't been detected
-            LOG_IF(verbose, WARNING) << "Darknet doesn\'t see this ground truth detection: " << loadedDet.toString();
+            LOG_IF(verbose, WARNING) << "Darknet doesn\'t see this ground truth detection: " << loadedDet.toHumanString();
             results.push_back({loadedDet.classId, loadedDet.bbox, 0, 0, filename});
         }
     }

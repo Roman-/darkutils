@@ -48,6 +48,9 @@ std::vector<std::string> splitString(const std::string s, char c);
 // returns true if folder with this path exists
 bool ifFolderExists(const std::string& path);
 
+// returns true if file/folder exists, regardless of its type
+bool ifFileExists(const std::string& path);
+
 // check if folder exist and create one (non-recursively). Returns false if failed to create
 bool createFolderIfDoesntExist(const std::string& path);
 

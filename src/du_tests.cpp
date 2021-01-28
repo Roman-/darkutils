@@ -13,7 +13,6 @@ struct IouTest {
 };
 
 int runIouTest(const std::string&) {
-    LOG(INFO) << "Running iou test";
     constexpr float deltaIou = 1e-6;
     std::vector<IouTest> iouTests = {
         IouTest{cv::Rect2f(0,0,4,4), cv::Rect2f(1,1,4,4), 9./23.},
@@ -23,7 +22,7 @@ int runIouTest(const std::string&) {
     for (const auto& t: iouTests) {
         float resIou = intersectionOverUnion(t.r1, t.r2);
         if (fabsf(resIou - t.iou) > deltaIou) {
-            LOG(ERROR) << "IoU test failed: rects: " << to_string(t.r1) << " and " << to_string(t.r2)
+            LOG(ERROR) << "IoU test failed: rects: " << to_human_string(t.r1) << " and " << to_human_string(t.r2)
                 << " - expected iou = " << t.iou << ", got " << resIou;
             return -1;
         }
@@ -96,7 +95,7 @@ int runDetectionLoadingTest(const std::string& testsDir) {
         }
         for (const auto& d: dets) {
             if (!d.isValid()) {
-                LOG(ERROR) << "detection loaded from " << filePath << " turned out to be invalid: " << d.toString();
+                LOG(ERROR) << "detection loaded from " << filePath << " turned out to be invalid: " << d.toHumanString();
                 return -1;
             }
         }

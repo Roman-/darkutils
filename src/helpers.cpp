@@ -53,7 +53,6 @@ bool saveToFile(const std::string& path, const std::string& content, bool append
 }
 
 std::string getFileContents(const std::string& filename) {
-    // TODO STOPPED THERE
     std::ifstream file(filename.c_str());
     if (!file.is_open()) {
         LOG(ERROR) << "getFileContents: can\'t open file " << filename;
@@ -107,6 +106,11 @@ std::vector<std::string> splitString(const std::string inputString, char c) {
 bool ifFolderExists(const std::string& path) {
     struct stat sb;
     return (stat(path.c_str(), &sb) == 0 && S_ISDIR(sb.st_mode));
+}
+
+bool ifFileExists(const std::string& path) {
+    struct stat sb;
+    return (stat (path.c_str(), &sb) == 0);
 }
 
 bool createFolderIfDoesntExist(const std::string& path) {
