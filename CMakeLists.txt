@@ -33,6 +33,7 @@ add_executable(darkutils
     src/du_common.cpp
     src/du_tests.cpp
     src/helpers.cpp
+    src/cure.cpp
     )
 
 target_include_directories(darkutils PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src" ${OpenCV_INCLUDE_DIRS})

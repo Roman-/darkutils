@@ -7,8 +7,6 @@
 using namespace std;
 using namespace cv;
 
-static constexpr float kValidationThresh = 0.15;
-
 // forward decl
 ComparisonResults comparePredictions(cv::Mat img, const DarkHelp::PredictionResults& predictions,
                                      const vector<LoadedDetection>& groundTruthDets, const std::string& filename);
@@ -24,7 +22,7 @@ void validateDataset(std::string pathToDataset, const std::string& configFile, c
 
     DarkHelp darkhelp(configFile, weightsFile, namesFile);
 
-    darkhelp.threshold                      = kValidationThresh;
+    darkhelp.threshold                      = kValidationProbThresh;
     darkhelp.include_all_names              = false;
     darkhelp.names_include_percentage       = true;
     darkhelp.annotation_include_duration    = false;
@@ -42,7 +40,7 @@ void validateDataset(std::string pathToDataset, const std::string& configFile, c
             LOG(ERROR) << "failed to load image: " << pathToImage;
             continue;
         }
-        vector<LoadedDetection> groundTruthDets = loadDetsFromFile(pathToDataset + filename + ".txt");
+        vector<LoadedDetection> groundTruthDets = loadedDetectionsFromFile(pathToDataset + filename + ".txt");
         const DarkHelp::PredictionResults predictions = darkhelp.predict(img);
         LOG(INFO) << (filesIndex+1) << "/" << filenames.size() << " " << filename
                     << ".jpg: " << groundTruthDets.size() << " marks"
@@ -69,7 +67,7 @@ ComparisonResults comparePredictions(cv::Mat img, const DarkHelp::PredictionResu
             auto predictionBbox = relativeBbox(predictions[i]);
             float p = getProb(predictions[i], loadedDet.classId);
             float iou = intersectionOverUnion(predictionBbox, loadedDet.bbox);
-            if (p > kValidationThresh && iou > kStrongIntersectionThresh) {
+            if (p > kValidationProbThresh && iou > kStrongIntersectionThresh) {
                 classProbability = p;
                 results.push_back({loadedDet.classId, predictionBbox, p, iou, filename});
                 LOG_IF(verbose, INFO) << "detected OK " << predictions[i];
@@ -89,7 +87,7 @@ ComparisonResults comparePredictions(cv::Mat img, const DarkHelp::PredictionResu
             int classId = it->first;
             float detectionProb = it->second;
             auto predictionBbox = relativeBbox(predictions[i]);
-            if (detectionProb > kValidationThresh) {
+            if (detectionProb > kValidationProbThresh) {
                 // see if dets[i] intersect with some of ground truth detections. If not, this is a false positive
                 bool hasMatchingGtDet = false;
                 float maxClassIou = 0; // maximum iou between darknet prediction and any of ground_truth with this classId

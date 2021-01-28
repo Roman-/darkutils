@@ -81,14 +81,14 @@ std::vector<std::string> loadTrainImageFilenames(const std::string& path) {
     return result;
 }
 
-std::vector<LoadedDetection> loadDetsFromFile(const std::string& path) {
+LoadedDetections loadedDetectionsFromFile(const std::string& path) {
     vector<LoadedDetection> result;
     auto content = getFileContents(path);
     auto l = splitString(content, '\n');
     for (const std::string& s: l) {
         auto parts = splitString(s, ' ');
         if (parts.size() != 5) {
-            LOG(ERROR) << "loadDetsFromFile: bad line \"" << s << "\"";
+            LOG(ERROR) << "loadedDetectionsFromFile: bad line \"" << s << "\"";
             continue;
         }
 
@@ -101,7 +101,7 @@ std::vector<LoadedDetection> loadDetsFromFile(const std::string& path) {
             relW = stof(parts[3].c_str());
             relH = stof(parts[4].c_str());
         } catch (const std::exception& ex) {
-            LOG(ERROR) << "loadDetsFromFile: failed to parse line in " << path << ". Line:\n" << s;
+            LOG(ERROR) << "loadedDetectionsFromFile: failed to parse line in " << path << ". Line:\n" << s;
             continue;
         }
 
@@ -114,18 +114,23 @@ std::vector<LoadedDetection> loadDetsFromFile(const std::string& path) {
 }
 
 ComparisonResult ComparisonResult::fromString(const std::string& str) {
+    static const ComparisonResult invalidResult{-1, cv::Rect2f(), -1, -1, ""};
     ComparisonResult r{-1, cv::Rect2f(), -1, -1, ""};
     // c x y w h p iou filename
     if (std::count(str.begin(), str.end(), ' ') < 7) {
         LOG(ERROR) << "ComparisonResult: bad string " << str;
-        return r;
+        return invalidResult;
     }
     std::istringstream iss(str);
-    r.classId;
 
-    if (!(iss >> r.classId >> r.bbox.x >> r.bbox.y >> r.bbox.width >> r.bbox.height >> r.prob >> r.iou)) {
-        LOG(ERROR) << "maybe error";
+    float midX, midY;
+
+    if (!(iss >> r.classId >> midX >> midY >> r.bbox.width >> r.bbox.height >> r.prob >> r.iou)) {
+        LOG(ERROR) << "failed to convert string to ComparisonResult: " << str;
+        return invalidResult;
     }
+    r.bbox.x = midX - r.bbox.width/2;
+    r.bbox.y = midY - r.bbox.height/2;
 
     // get the rest of the line as filename
     constexpr int kMaxFileNameSize = 64;
@@ -145,6 +150,10 @@ bool ComparisonResult::isValid() const {
     return true;
 }
 
+LoadedDetection ComparisonResult::toLoadedDet() const {
+    return LoadedDetection{classId, bbox, filename};
+}
+
 ComparisonResults comparisonResultsFromFile(const std::string& filename) {
     ComparisonResults rs;
     auto lines = getFileContentsAsStringVector(filename);
@@ -160,3 +169,13 @@ ComparisonResults comparisonResultsFromFile(const std::string& filename) {
     return rs;
 }
 
+int findDetection(const LoadedDetections& dets, const LoadedDetection& needle) {
+    constexpr float kIouThresh = 0.99; // if iou(r1, r2) > 0.99, consider r1 ~= r2
+    for (int i = 0; i < int(dets.size()); ++i) {
+        if (dets[i].classId == needle.classId
+                && dets[i].filename == needle.filename
+                && intersectionOverUnion(dets[i].bbox, needle.bbox) > kIouThresh)
+            return i;
+    }
+    return -1;
+}

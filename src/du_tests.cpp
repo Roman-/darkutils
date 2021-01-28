@@ -6,11 +6,6 @@
 #include <string>
 #include <vector>
 
-inline bool fEqual(float f1, float f2) {
-    constexpr float delta = 1e-7;
-    return fabsf(f1 - f2) < delta;
-}
-
 struct IouTest {
     cv::Rect2f r1;
     cv::Rect2f r2;
@@ -47,9 +42,9 @@ int runCmpResultsFromStringTests(const std::string&) {
         LOG(ERROR) << "runCmpResultsFromStringTests: classId is " << r.classId;
         return -1;
     }
-    if (!fEqual(r.bbox.width, 0.5) || !fEqual(r.bbox.height, 0.5)
-            || !fEqual(r.bbox.x, 0.5) || !fEqual(r.bbox.y, 0.5)
-            || !fEqual(r.iou, 0.5) || !fEqual(r.prob, 0.5)) {
+    if (!almostEqual(r.bbox.width, 0.5) || !almostEqual(r.bbox.height, 0.5)
+            || !almostEqual(r.bbox.x, 0.25) || !almostEqual(r.bbox.y, 0.25)
+            || !almostEqual(r.iou, 0.5) || !almostEqual(r.prob, 0.5)) {
         LOG(ERROR) << "runCmpResultsFromStringTests: parsed wrong: is " << r.toString() << "\n but shold be this:\n" << str;
         return -1;
     }
@@ -70,7 +65,7 @@ int runCmpResultsFromFileTests(const std::string& pathToTestFolder) {
     }
 
     it = std::find_if(results.begin(), results.end(),
-            [](const ComparisonResult& r) {return r.bbox.area() > 1 || fEqual(r.bbox.area(), 0);});
+            [](const ComparisonResult& r) {return r.bbox.area() > 1 || almostEqual(r.bbox.area(), 0);});
     if (it != results.end()) {
         LOG(ERROR) << "runCmpResultsFromFileTests: bad bbox: " << it->toString();
         return -1;
@@ -93,7 +88,7 @@ int runDetectionLoadingTest(const std::string& testsDir) {
     for (const auto& p: numDetsInFiles) {
         auto filePath = testsDir + "/masks_files/" + p.first + ".txt";
         int expectedDets = p.second;
-        std::vector<LoadedDetection> dets = loadDetsFromFile(filePath);
+        std::vector<LoadedDetection> dets = loadedDetectionsFromFile(filePath);
         if (dets.size() != expectedDets) {
             LOG(ERROR) << "in file " << filePath << ", amount of parsed detections = " << dets.size()
                        << " but expected to be " << expectedDets;

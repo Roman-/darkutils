@@ -4,6 +4,7 @@
 #include "easylogging++.h"
 #include <string>
 #include <vector>
+#include <cmath>
 
 // returns file contents as string
 std::string getFileContents(const std::string& filename);
@@ -18,6 +19,8 @@ std::string applicationPath();
 
 // "/path/to/abc.txt" -> "abc"
 std::string extractFilenameFromFullPath(const std::string& path);
+// if /path/to/dir doesn't have trailing slash, add it
+inline std::string addSlash(const std::string& path) {return (!path.empty() && path.back() == '/' ? path : path+"/");}
 
 // write text to file. Returns true if successful
 bool saveToFile(const std::string& path, const std::string& content, bool append = false);
@@ -56,6 +59,13 @@ static inline bool strEndsWith(std::string const &fullString, std::string const 
         return false;
     }
 }
+
+// true if |f1-f2| < delta
+inline bool almostEqual(float f1, float f2) {
+    constexpr float delta = 1e-7;
+    return fabsf(f1 - f2) < delta;
+}
+
 
 // returns current timestamp in seconds
 uint32_t currentTimestamp();

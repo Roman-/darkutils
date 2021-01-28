@@ -9,10 +9,11 @@
 #include <DarkHelp.hpp>
 
 // dark utils project
-#include <helpers.h>
-#include <dumanager.h>
-#include <du_tests.h>
-#include <validation.h>
+#include "helpers.h"
+#include "dumanager.h"
+#include "du_tests.h"
+#include "validation.h"
+#include "cure.h"
 
 INITIALIZE_EASYLOGGINGPP
 
@@ -24,9 +25,11 @@ using std::endl;
 static int showUsage(std::string name) {
     cerr << "Usage: " << endl
            //        0          1        2           3           4          5           6
-         << "\t" << name << " makevid yoloCfgFile weightsFile namesFile inputVideo" << endl
-         << "\t" << name << " test "<<"/path/to/darkutils/data/tests"  << endl
-         << "\t" << name << " validate yoloCfgFile weightsFile namesFile /path/to/dataset outputFile.duv"  << endl;
+         << "\t" << name << " markvid yoloCfgFile weightsFile namesFile inputVideo" << endl
+         << "\t" << name << " markimgs yoloCfgFile weightsFile namesFile /path/to/imgs/" << endl
+         << "\t" << name << " test "<<"/path/to/darkutils/data/tests/"  << endl
+         << "\t" << name << " validate yoloCfgFile weightsFile namesFile /path/to/dataset/ outputFile.duv"  << endl
+         << "\t" << name << " cure /path/to/dataset/ duvFile namesFile" << endl;
     return -1;
 }
 int main(int argc, char **argv) {
@@ -42,11 +45,23 @@ int main(int argc, char **argv) {
     // check number of args
     std::map<std::string, int> commandNumArgs = {
         {"test", 3},
-        {"makevid", 6},
+        {"markvid", 6},
+        {"markimgs", 6},
         {"validate", 7},
+        {"cure", 5},
     };
     if (commandNumArgs.end() == commandNumArgs.find(command) || argc != commandNumArgs.at(command))
         return showUsage(argv[0]);
+
+    if (command == "markvid") {
+        markVid(argv[2], argv[3], argv[4], argv[5]);
+        return 0;
+    }
+
+    if (command == "markimgs") {
+        markImgs(argv[2], argv[3], argv[4], argv[5]);
+        return 0;
+    }
 
     if (command == "test")
         return runAllTests(argv[2]);
@@ -56,13 +71,11 @@ int main(int argc, char **argv) {
         return 0;
     }
 
-    std::string cfgFile(argv[2]);
-    std::string weightsFile(argv[3]);
-    std::string namesFile(argv[4]);
-    std::string inputFile(argv[5]);
+    if (command == "cure") {
+        cureDataset(argv[2], argv[3], argv[4]);
+        return 0;
+    }
 
-    dutest(cfgFile, weightsFile, namesFile, inputFile);
-
-    return 0;
+    return -1;
 }
 

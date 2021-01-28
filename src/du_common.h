@@ -7,7 +7,11 @@
 #include <DarkHelp.hpp>
 
 using std::to_string;
-static constexpr float kStrongIntersectionThresh = 0.45;
+
+// kStrongIntersectionThresh: if iou(r1,r2) > th, we consider r1 and r2 to refer to the same detected object
+constexpr float kStrongIntersectionThresh = 0.45;
+// minimum detection probability
+constexpr float kValidationProbThresh = 0.15;
 
 // returns relaive bbox of prediction result. Note that x,y are still the coordinates of top-left corner, just in [0,1] interval.
 inline cv::Rect2f relativeBbox(const DarkHelp::PredictionResult& r) {
@@ -35,6 +39,9 @@ struct LoadedDetection {
     // bbox is between 0 and 1; classId > 0, filename not empty
     bool isValid() const;
 };
+typedef std::vector<LoadedDetection> LoadedDetections;
+LoadedDetections loadedDetectionsFromFile(const std::string& filename);
+int findDetection(const LoadedDetections& dets, const LoadedDetection& needle);
 
 struct ComparisonResult {
     int classId; // as predicted by darknet
@@ -49,8 +56,13 @@ struct ComparisonResult {
     static ComparisonResult fromString(const std::string& str);
     // returns false if classId < 0, prop<0, iou < 0 or filename is empty or slashy
     bool isValid() const;
+    // convert to "loaded detection"
+    LoadedDetection toLoadedDet() const;
 };
 typedef std::vector<ComparisonResult> ComparisonResults;
+
+inline bool ProbIsBigger(const ComparisonResult& lhs, const ComparisonResult& rhs) {return lhs.prob > rhs.prob;}
+inline bool AreaIsBigger(const ComparisonResult& lhs, const ComparisonResult& rhs) {return lhs.bbox.area() > rhs.bbox.area();}
 // newline-separated results, with "\n" at the end as well
 std::string to_string(const ComparisonResults& results);
 ComparisonResults comparisonResultsFromFile(const std::string& filename);
@@ -66,6 +78,5 @@ float intersectionOverUnion(const cv::Rect2f& r1, const cv::Rect2f& r2);
 
 // returns list of filenames (training images) in folder without extension, sorted alphabetically
 std::vector<std::string> loadTrainImageFilenames(const std::string& path);
-std::vector<LoadedDetection> loadDetsFromFile(const std::string& path);
 
 #endif // DU_COMMON_H
