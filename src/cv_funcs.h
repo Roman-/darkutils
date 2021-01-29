@@ -15,6 +15,10 @@ void drawBboxCrossed(cv::Mat& img, const cv::Rect& bbox, const cv::Scalar& color
 // relative bbox & cross inside
 void drawBboxCrossed(cv::Mat& img, const cv::Rect2f& bbox, const cv::Scalar& color, int rectWidth = 1, int crossWidth = 1);
 
+// draw bboxes and percentage
+void annotateCustom(cv::Mat& img, const DarkHelp::PredictionResults& results
+                    , const std::vector<std::string>& names, bool drawNames, bool drawPercentage);
+
 namespace cvColors {
 // returns color by class index (0 is always pink, 1 is greenish etc.)
 cv::Scalar colorByClass(int classId);
@@ -26,6 +30,11 @@ static const cv::Scalar cvColorDarkRed= CV_RGB(128, 0  , 0);
 static const cv::Scalar cvColorOrange = CV_RGB(255, 69 , 0);
 static const cv::Scalar cvColorYellow = CV_RGB(255, 255, 0);
 static const cv::Scalar cvColorGreen =  CV_RGB(0  , 255, 0);
-} // namespace svColors
+
+// returns color of the text that will be readable on this background
+inline cv::Scalar contrastTextColor(const cv::Scalar& bg) {return (bg[0] + bg[1] + bg[2]) > 128*3 ? cvColorBlack : cvColorWhite;}
+
+} // namespace cvColors
+
 
 #endif // CV_FUNCS_H

@@ -1,6 +1,10 @@
 #include <cv_funcs.h>
 #include <DarkHelp.hpp>
 #include <easylogging++.h>
+#include <string>
+
+using namespace cvColors;
+using std::to_string;
 
 void drawBbox(cv::Mat& img, const cv::Rect& bbox, const cv::Scalar& color, int width) {
     if (nullptr == img.data)
@@ -26,6 +30,26 @@ void drawBboxCrossed(cv::Mat& img, const cv::Rect2f& bbox, const cv::Scalar& col
     drawBboxCrossed(img, absBbox, color, rectThickness, crossThickness);
 }
 
+// draw bboxes and percentage
+void annotateCustom(cv::Mat& img, const DarkHelp::PredictionResults& results
+                    , const std::vector<std::string>& names, bool drawNames, bool drawPercentage) {
+    constexpr const int fontFace = cv::FONT_HERSHEY_DUPLEX;
+    constexpr const float fontScale = 0.5;
+    constexpr const int thickness = 1;
+    for (const auto& r: results) {
+        auto color = colorByClass(r.best_class);
+        drawBbox(img, r.rect, color, 2);
+        if (drawNames || drawPercentage) {
+            std::string txt = drawNames ? names[r.best_class] : "";
+            txt += (drawNames && drawPercentage) ? " " : "";
+            txt += drawPercentage ? (to_string(int(r.best_probability * 100)) + "%") : "";
+            auto textSize = cv::getTextSize(txt, fontFace, fontScale, thickness, 0);
+            cv::Rect textRect(r.rect.x, r.rect.y - textSize.height, textSize.width, textSize.height);
+            cv::rectangle(img, textRect, color, cv::FILLED);
+            cv::putText(img, txt, r.rect.tl(), fontFace, fontScale, contrastTextColor(color), thickness);
+        }
+    }
+}
 
 namespace cvColors {
 cv::Scalar colorByClass(int classId) {
@@ -48,4 +72,5 @@ cv::Scalar colorByClass(int classId) {
 
     return palette[classId];
 }
+
 }

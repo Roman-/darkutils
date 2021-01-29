@@ -27,7 +27,7 @@ static int showUsage(std::string name) {
            //        0          1        2           3           4          5           6
          << "\t" << name << " markvid yoloCfgFile weightsFile namesFile inputVideo" << endl
          << "\t" << name << " markimgs yoloCfgFile weightsFile namesFile /path/to/imgs/" << endl
-         << "\t" << name << " test "<<"/path/to/darkutils/data/tests/"  << endl
+         << "\t" << name << " test /path/to/darkutils/data/tests/"  << endl
          << "\t" << name << " validate yoloCfgFile weightsFile namesFile /path/to/dataset/ outputFile.duv"  << endl
          << "\t" << name << " cure /path/to/dataset/ duvFile namesFile" << endl;
     return -1;

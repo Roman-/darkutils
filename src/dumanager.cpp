@@ -7,6 +7,9 @@
 using namespace std;
 using namespace cv;
 
+constexpr bool kDrawNames = false;
+constexpr bool kDrawPercentage = true;
+
 void configureDarkHelp(DarkHelp& dh) {
     dh.threshold                      = 0.35;
     dh.include_all_names              = false;
@@ -25,6 +28,7 @@ void markVid(const std::string& configFile, const std::string& weightsFile,
     LOG(INFO) << "Opened video, " << cap.get(CV_CAP_PROP_FRAME_COUNT) << " total frames, " << fps << " fps, "
         << vidSize.width << "x" << vidSize.height;
     constexpr const char* outFilename = "darkutils_out.mp4";
+    auto names = getFileContentsAsStringVector(namesFile);
 
     DarkHelp darkhelp(configFile, weightsFile, namesFile);
     configureDarkHelp(darkhelp);
@@ -36,11 +40,12 @@ void markVid(const std::string& configFile, const std::string& weightsFile,
         cap >> frame;
         if (frame.empty())
             break;
-        const auto result = darkhelp.predict(frame);
-        std::cout << result << std::endl;
+        const auto results = darkhelp.predict(frame);
+        std::cout << results << std::endl;
 
-        cv::Mat output = darkhelp.annotate();
-        videoWriter << output;
+        // cv::Mat output = darkhelp.annotate();
+        annotateCustom(frame, results, names, kDrawNames, kDrawPercentage);
+        videoWriter << frame;
     }
     cap.release();
     LOG(INFO) << "Annotated file created: " << outFilename;
@@ -60,11 +65,12 @@ void markImgs(const std::string& configFile, const std::string& weightsFile,
     constexpr const char* pathToResults = "prediction_results/";
     bool createdOrExists = createFolderIfDoesntExist(pathToResults);
     LOG_IF(!createdOrExists, FATAL) << "failed to create folder: " << pathToResults;
+    auto names = getFileContentsAsStringVector(namesFile);
 
     DarkHelp darkhelp(configFile, weightsFile, namesFile);
     configureDarkHelp(darkhelp);
 
-    int numImgsSaved = 0;
+    int numImgsSaved = 0, imgIndex = 0;
     for (const auto& fn: imgFiles) {
         auto fullPath = pathToImgs + fn;
         cv::Mat img = imread(fullPath);
@@ -72,11 +78,11 @@ void markImgs(const std::string& configFile, const std::string& weightsFile,
             LOG(ERROR) << "failed to load image " << fullPath;
             continue;
         }
-        const auto result = darkhelp.predict(img);
-        cv::Mat outputImg = darkhelp.annotate();
+        const auto results = darkhelp.predict(img);
+        annotateCustom(img, results, names, kDrawNames, kDrawPercentage);
         std::string outputImgPath = pathToResults + fn;
-        LOG(INFO) << fn << ": " << result;
-        bool saved = imwrite(outputImgPath, outputImg);
+        LOG(INFO) << (++imgIndex) << "/" << imgFiles.size() << " " << fn << ": " << results;
+        bool saved = imwrite(outputImgPath, img);
 
         if (saved)
             ++numImgsSaved;
