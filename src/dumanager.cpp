@@ -25,7 +25,8 @@ void markVid(const std::string& configFile, const std::string& weightsFile,
     LOG_IF(!cap.isOpened(), FATAL) << "cant open video " << inputFile;
     float fps = cap.get(CV_CAP_PROP_FPS);
     cv::Size vidSize(cap.get(CV_CAP_PROP_FRAME_WIDTH), cap.get(CV_CAP_PROP_FRAME_HEIGHT));
-    LOG(INFO) << "Opened video, " << cap.get(CV_CAP_PROP_FRAME_COUNT) << " total frames, " << fps << " fps, "
+    const int totalFrames = cap.get(CV_CAP_PROP_FRAME_COUNT);
+    LOG(INFO) << "Opened video, " << totalFrames << " total frames, " << fps << " fps, "
         << vidSize.width << "x" << vidSize.height;
     constexpr const char* outFilename = "darkutils_out.mp4";
     auto names = getFileContentsAsStringVector(namesFile);
@@ -34,6 +35,7 @@ void markVid(const std::string& configFile, const std::string& weightsFile,
     configureDarkHelp(darkhelp);
 
     cv::VideoWriter videoWriter(outFilename, cv::VideoWriter::fourcc('M','J','P','G'), fps, vidSize);
+    int frameCount = 0;
     // video
     while (true) {
         cv::Mat frame;
@@ -41,7 +43,7 @@ void markVid(const std::string& configFile, const std::string& weightsFile,
         if (frame.empty())
             break;
         const auto results = darkhelp.predict(frame);
-        std::cout << results << std::endl;
+        LOG(INFO) << (++frameCount) << "/" << totalFrames << ": " << results;
 
         // cv::Mat output = darkhelp.annotate();
         annotateCustom(frame, results, names, kDrawNames, kDrawPercentage);
