@@ -36,5 +36,9 @@ inline cv::Scalar contrastTextColor(const cv::Scalar& bg) {return (bg[0] + bg[1]
 
 } // namespace cvColors
 
+// returns difference between images from 0 (unchanged) to 1 (change from black to white)
+float imgDiff(cv::Mat img1, cv::Mat img2);
+
+
 
 #endif // CV_FUNCS_H

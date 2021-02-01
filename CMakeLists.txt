@@ -32,6 +32,7 @@ add_executable(darkutils
     src/validation.cpp
     src/du_common.cpp
     src/du_tests.cpp
+    src/extract_frames.cpp
     src/helpers.cpp
     src/cure.cpp
 )

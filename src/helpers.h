@@ -63,6 +63,13 @@ static inline bool strEndsWith(std::string const &fullString, std::string const 
     }
 }
 
+// removes all characters c from string
+static inline std::string removeAllChars(const std::string& str, char c) {
+    std::string s(str);
+    s.erase(std::remove(s.begin(), s.end(), c), s.end());
+    return s;
+}
+
 // true if |f1-f2| < delta
 inline bool almostEqual(float f1, float f2) {
     constexpr float delta = 1e-7;

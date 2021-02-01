@@ -74,3 +74,23 @@ cv::Scalar colorByClass(int classId) {
 }
 
 }
+
+float imgDiff(cv::Mat img1, cv::Mat img2) {
+    int w = img1.cols;
+    int h = img1.rows;
+    if (img1.size() != img2.size()) {
+        LOG(ERROR) << "image sizes mismatch in imgDiff: img1 " << w << "x" << h << ", img2 " << img2.cols << "x" << img2.rows;
+        return 1;
+    }
+    cv::Mat diffImage;
+    cv::absdiff(img1, img2, diffImage);
+
+    float result = 0;
+
+    for(int j=0; j<diffImage.rows; ++j) {
+        for(int i=0; i<diffImage.cols; ++i) {
+            cv::Vec3b pix = diffImage.at<cv::Vec3b>(j,i);
+            result += float(pix[0] + pix[1] + pix[2]) / (255*3);
+    }   }
+    return result / (diffImage.rows * diffImage.cols);
+}
