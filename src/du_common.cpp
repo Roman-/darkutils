@@ -77,22 +77,29 @@ float intersectionOverUnion(const cv::Rect2f& r1, const cv::Rect2f& r2) {
     return iou;
 }
 
-std::vector<std::string> loadTrainImageFilenames(const std::string& path) {
+std::vector<std::string> loadTrainImageFilenames(const std::string& path, bool labeledFiles) {
     std::vector<std::string> filesList = listFilesInDir(path);
     std::vector<std::string> result;
+    result.reserve(filesList.size()/2);
     std::sort(filesList.begin(), filesList.end());
 
     // add file to 'result' if two consecutive files have same basenames and end with ".jpg" and ".txt" accordingly
     for (size_t i = 0; i < filesList.size() - 1; ++i) {
         std::string& curr = filesList[i];
-        std::string& next = filesList[i + 1];
-        if (curr.size() < 5 || next.size() < 5 || curr.find(".jpg") == string::npos || next.find(".txt") == string::npos)
+        if (std::string::npos == curr.rfind(".jpg"))
             continue;
-        std::string baseFileName = curr.substr(0, curr.find('.'));
-        if (baseFileName.size() > 0 && next.rfind(baseFileName, 0) == 0) {
-            result.push_back(baseFileName);
-            ++i; // skip next file to skip the pair
+        // find basename.txt file follows after
+        std::string baseFileName = getBaseFileName(curr);
+        int txtFileIndex = i;
+        bool txtFileExists = false;
+        while (!txtFileExists
+                && txtFileIndex < filesList.size()
+                && baseFileName == getBaseFileName(filesList[txtFileIndex])) {
+            txtFileExists |= (baseFileName + ".txt" == filesList[txtFileIndex]);
+            ++txtFileIndex;
         }
+        if ((labeledFiles && txtFileExists) || (!labeledFiles && !txtFileExists))
+            result.push_back(baseFileName);
     }
     return result;
 }

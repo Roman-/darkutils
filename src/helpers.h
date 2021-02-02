@@ -19,6 +19,10 @@ std::string applicationPath();
 
 // "/path/to/abc.txt" -> "abc"
 std::string extractFilenameFromFullPath(const std::string& path);
+
+// "abc.txt" -> "abc"
+std::string getBaseFileName(std::string filename);
+
 // if /path/to/dir doesn't have trailing slash, add it
 inline std::string addSlash(const std::string& path) {return (!path.empty() && path.back() == '/' ? path : path+"/");}
 

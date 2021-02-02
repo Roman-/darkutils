@@ -1,0 +1,1 @@
+This misleading file attempts to fool the dataset loading procedure. If the procedure relies on "basename.jpg must be followed by basename.txt in alphabetical order", this will fail the DS loading tests.

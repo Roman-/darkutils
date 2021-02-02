@@ -30,6 +30,27 @@ int runIouTest(const std::string&) {
     return 0;
 }
 
+int runDsLoadingTests(const std::string& pathToTrainImgs) {
+    static const std::string pathToDataset = pathToTrainImgs + "/masks_files";
+    auto files = loadTrainImageFilenames(pathToDataset, true); // 1,2,3,4
+    if (files.size() != 4) {
+        LOG(ERROR) << "runDsLoadingTests failed: number of image files here should be 4 but equals " << files.size();
+        return 1;
+    }
+    static const std::vector<std::string> baseFileNames = {"1", "2", "3", "4"};
+    if (files != baseFileNames) {
+        LOG(ERROR) << "runDsLoadingTests failed: files != baseFileNames.";
+        return 1;
+    }
+    // empty files
+    auto filesWithoutTxt = loadTrainImageFilenames(pathToDataset, false);
+    if (!filesWithoutTxt.empty()) {
+        LOG(ERROR) << "runDsLoadingTests failed: filesWithoutTxt not empty in " << pathToDataset;
+        return 1;
+    }
+    return 0;
+}
+
 int runCmpResultsFromStringTests(const std::string&) {
     const std::string str = "2 0.5 0.5 0.5 0.5 0.5 0.5 file name with spaces";
     auto r = ComparisonResult::fromString(str);
@@ -110,6 +131,7 @@ int runAllTests(const std::string& testsDataDir) {
         , &runDetectionLoadingTest
         , &runCmpResultsFromStringTests
         , &runCmpResultsFromFileTests
+        , &runDsLoadingTests
     };
 
     // check tests dir

@@ -81,6 +81,8 @@ inline std::string to_human_string(const cv::Rect_<Tp> r) {
 float intersectionOverUnion(const cv::Rect2f& r1, const cv::Rect2f& r2);
 
 // returns list of filenames (training images) in folder without extension, sorted alphabetically
-std::vector<std::string> loadTrainImageFilenames(const std::string& path);
+// \param labeledFiles - if true, only list files that has both .jpg and .txt.
+// \param labeledFiles if false, returns list of filenames that has .jpg but do not have .txt files for them.
+std::vector<std::string> loadTrainImageFilenames(const std::string& path, bool labeledFiles = true);
 
 #endif // DU_COMMON_H

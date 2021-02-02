@@ -40,6 +40,10 @@ std::string extractFilenameFromFullPath(const std::string& pathOriginal) {
     return s;
 }
 
+std::string getBaseFileName(std::string filename) {
+    size_t iod = filename.rfind('.'); // index of dot
+    return (std::string::npos == iod) ? filename : filename.substr(0, iod);
+}
 
 bool saveToFile(const std::string& path, const std::string& content, bool append) {
     std::ofstream outfile;
