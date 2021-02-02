@@ -16,6 +16,7 @@
 #include "cure.h"
 #include "cv_funcs.h"
 #include "extract_frames.h"
+#include "du_utilities.h"
 
 INITIALIZE_EASYLOGGINGPP
 
@@ -30,6 +31,7 @@ static int showUsage(std::string name) {
          << "\t" << name << " markvid yoloCfgFile weightsFile namesFile inputVideo" << endl
          << "\t" << name << " markimgs yoloCfgFile weightsFile namesFile /path/to/imgs/" << endl
          << "\t" << name << " extractframes /path/to/videos/ fps similarityThresh=0" << endl
+         << "\t" << name << " addemptytxt /path/to/dataset/" << endl
          << "\t" << name << " test /path/to/darkutils/data/tests/"  << endl
          << "\t" << name << " validate yoloCfgFile weightsFile namesFile /path/to/dataset/ outputFile.duv"  << endl
          << "\t" << name << " cure /path/to/dataset/ duvFile namesFile" << endl;
@@ -50,6 +52,7 @@ int main(int argc, char **argv) {
         {"test", 3},
         {"markvid", 6},
         {"markimgs", 6},
+        {"addemptytxt", 3},
         {"extractframes", 5},
         {"validate", 7},
         {"cure", 5},
@@ -65,6 +68,10 @@ int main(int argc, char **argv) {
     if (command == "markimgs") {
         markImgs(argv[2], argv[3], argv[4], argv[5]);
         return 0;
+    }
+
+    if (command == "addemptytxt") {
+        return createEmptyTxtFiles(argv[2]);
     }
 
     if (command == "extractframes") {

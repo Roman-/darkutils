@@ -35,6 +35,7 @@ add_executable(darkutils
     src/extract_frames.cpp
     src/helpers.cpp
     src/cure.cpp
+    src/du_utilities.cpp
 )
 
 target_include_directories(darkutils PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src" ${OpenCV_INCLUDE_DIRS})
