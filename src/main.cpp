@@ -39,7 +39,6 @@ static int showUsage(std::string name) {
 }
 int main(int argc, char **argv) {
     el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Format, "%level %msg");
-    el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToFile, "false"); // < TODO this does not work
     el::Loggers::addFlag(el::LoggingFlag::ColoredTerminalOutput);
 
     if (argc < 2)
@@ -56,6 +55,7 @@ int main(int argc, char **argv) {
         {"extractframes", 5},
         {"validate", 7},
         {"cure", 5},
+        // TODO introduce "sanitycheck" command: checks that each img has .txt, no extra files, no broken images
     };
     if (commandNumArgs.end() == commandNumArgs.find(command) || argc != commandNumArgs.at(command))
         return showUsage(argv[0]);
