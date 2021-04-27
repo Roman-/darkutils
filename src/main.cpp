@@ -34,7 +34,7 @@ static int showUsage(std::string name) {
          << "\t" << name << " addemptytxt /path/to/dataset/" << endl
          << "\t" << name << " test /path/to/darkutils/data/tests/"  << endl
          << "\t" << name << " validate yoloCfgFile weightsFile namesFile /path/to/train.txt outputFile.duv.tsv"  << endl
-         << "\t" << name << " cure /path/to/dataset/ duvFile.tsv namesFile" << endl;
+         << "\t" << name << " cure /path/to/results.duv.tsv namesFile" << endl;
     return -1;
 }
 int main(int argc, char **argv) {
@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
         {"addemptytxt", 3},
         {"extractframes", 5},
         {"validate", 7},
-        {"cure", 5},
+        {"cure", 4},
         // TODO introduce "sanitycheck" command: checks that each img has .txt, no extra files, no broken images
     };
     if (commandNumArgs.end() == commandNumArgs.find(command) || argc != commandNumArgs.at(command))
@@ -90,7 +90,7 @@ int main(int argc, char **argv) {
     }
 
     if (command == "cure") {
-        cureDataset(argv[2], argv[3], argv[4]);
+        cureDataset(argv[2], argv[3]);
         return 0;
     }
 

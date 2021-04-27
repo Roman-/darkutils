@@ -40,6 +40,11 @@ std::string extractFilenameFromFullPath(const std::string& pathOriginal) {
     return s;
 }
 
+std::string extractFileLocationFromFullPath(const std::string& pathToFile) {
+    size_t lastIoSlash = pathToFile.find_last_of("/\\");
+    return (std::string::npos == lastIoSlash) ? "" : pathToFile.substr(0, lastIoSlash+1);
+}
+
 std::string getBaseFileName(std::string filename) {
     size_t iod = filename.rfind('.'); // index of dot
     return (std::string::npos == iod) ? filename : filename.substr(0, iod);

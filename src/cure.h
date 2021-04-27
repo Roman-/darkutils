@@ -4,8 +4,8 @@
 #include <string>
 
 // "cure" dataset by interactively showing apparently wrong marks from .duv file
-void cureDataset(const std::string& pathToTrainData
-               , const std::string& pathToDuv
+// @param pathToDuv path to results.duv.tsv, with image paths being either absolute or relative to .duv.tsv
+void cureDataset(const std::string& pathToDuv
                , const std::string& pathToNames);
 
 

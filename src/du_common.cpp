@@ -171,11 +171,7 @@ ComparisonResult ComparisonResult::fromString(const std::string& str) {
 }
 
 bool ComparisonResult::isValid() const {
-    if (filename.empty() || string::npos != filename.find('/'))
-        return false;
-    if (classId < 0 || iou < 0 || prob < 0)
-        return false;
-    return true;
+    return (!filename.empty() && classId >= 0 && iou >= 0 && prob >= 0);
 }
 
 LoadedDetection ComparisonResult::toLoadedDet() const {

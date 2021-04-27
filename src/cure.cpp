@@ -34,13 +34,13 @@ static cv::Mat resizedToWindow(cv::Mat img) {
 }
 
 // pathToTrainData - path to dir with .txt and .jpg files, pathToDuv - /path/to/compareResults.duv
-void cureDataset(const std::string& pathToTrainData
-               , const std::string& pathToDuv
+void cureDataset(const std::string& pathToDuv
                , const std::string& pathToNames) {
     bool backupFolderCreated = createFolderIfDoesntExist(backupFolderPath);
     LOG_IF(!backupFolderCreated, ERROR) << "failed to create " << backupFolderPath << ", backups will be omitted";
 
     // load
+    std::string workPath = extractFileLocationFromFullPath(pathToDuv);
     auto cmpResults = comparisonResultsFromFile(pathToDuv);
     auto names = getFileContentsAsStringVector(pathToNames);
 
@@ -85,8 +85,8 @@ void cureDataset(const std::string& pathToTrainData
             continue;
         }
         ComparisonResult& cr = showingToAdd ? toAdd[indexOfToAdd] : toRemove[indexOfToRemove];
-        auto imgPath = pathToTrainData + "/" + cr.filename + ".jpg";
-        auto detsPath = pathToTrainData + "/" + cr.filename + ".txt";
+        auto imgPath = workPath + cr.filename + ".jpg";
+        auto detsPath = workPath + cr.filename + ".txt";
         cv::Mat img = imread(imgPath);
         if (nullptr == img.data) {
             LOG(ERROR) << "failed to load image " << imgPath;

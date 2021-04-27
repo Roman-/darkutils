@@ -18,7 +18,10 @@ std::string getExecutablePath();
 std::string applicationPath();
 
 // "/path/to/abc.txt" -> "abc"
-std::string extractFilenameFromFullPath(const std::string& path);
+std::string extractFilenameFromFullPath(const std::string& pathToFile);
+
+// "/path/to/abc.txt" -> "/path/to/"
+std::string extractFileLocationFromFullPath(const std::string& pathToFile);
 
 // "abc.txt" -> "abc"
 std::string getBaseFileName(std::string filename);
