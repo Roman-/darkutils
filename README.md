@@ -35,9 +35,9 @@ ights ../data/tests/masks_files/obj.names ../data/tests/masks_files/ result.duv.
 ```
 the result.duv.tsv file will be generated. Each line of the file has the following format (tab-separated):
 ```
-filename c x y w h p iou
+path c x y w h p iou
 ```
-, where `c` is integer class id starting with 0, `x,y,w,h` are relative coords of detection (0-1), `p` is darknet probability (0-1), iou is IntersectionOverUnion (0-1) between your mark bbox and what darknet has predicted, filename is name of image file without extension and it may contain spaces.
+, where `path` is path to image file without extension, e.g. masks2/img0001. It's either relative to the location of train.txt file or an absolute path, depending on how the images are referred in train.txt. May contain whitespaces but not tabs. `c` is integer class id starting with 0, `x,y,w,h` are relative coords of detection (0-1), `p` is darknet probability (0-1), iou is IntersectionOverUnion (0-1) between your mark bbox and what darknet has predicted, 
 
 # how to interpret .duv.tsv results
 
