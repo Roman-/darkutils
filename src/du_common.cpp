@@ -3,23 +3,25 @@
 #include <algorithm>
 #include <string>
 #include <vector>
+#include <sstream>
 
 using namespace std;
+
+static constexpr const std::string_view kDotJpg = std::string_view(".jpg");
 
 std::string ComparisonResult::toString() const {
     float x = bbox.x + bbox.width / 2;
     float y = bbox.y + bbox.height / 2;
-    return to_string(classId) + " " + to_string(x) + " " + to_string(y) + " " + to_string(bbox.width)
-           + " " + to_string(bbox.height) + " " + to_string(prob) + " " + to_string(iou) + " " + filename;
+    ostringstream ss;
+    ss << filename << '\t' << classId << '\t' << x << '\t' << y << '\t' << bbox.width
+           << '\t' << bbox.height << '\t' << prob << '\t' << iou;
+    return ss.str();
 }
 
 std::string to_string(const ComparisonResults& results) {
     std::string s;
     for (const auto& r: results)
         s += r.toString() + "\n";
-    // remove last '\n'
-    if (!s.empty())
-        s.pop_back();
     return s;
 }
 
@@ -86,7 +88,7 @@ std::vector<std::string> loadTrainImageFilenames(const std::string& path, bool l
     // add file to 'result' if two consecutive files have same basenames and end with ".jpg" and ".txt" accordingly
     for (size_t i = 0; i < filesList.size() - 1; ++i) {
         std::string& curr = filesList[i];
-        if (std::string::npos == curr.rfind(".jpg"))
+        if (std::string::npos == curr.rfind(kDotJpg))
             continue;
         // find basename.txt file follows after
         std::string baseFileName = getBaseFileName(curr);
@@ -138,29 +140,32 @@ LoadedDetections loadedDetectionsFromFile(const std::string& path) {
 
 ComparisonResult ComparisonResult::fromString(const std::string& str) {
     static const ComparisonResult invalidResult{-1, cv::Rect2f(), -1, -1, ""};
-    ComparisonResult r{-1, cv::Rect2f(), -1, -1, ""};
-    // c x y w h p iou filename
-    if (std::count(str.begin(), str.end(), ' ') < 7) {
+    ComparisonResult r{invalidResult};
+    vector<string> parts = splitString(str, '\t');
+    // "filename c x y w h p iou", tab-separated
+    if (parts.size() != 8) {
         LOG(ERROR) << "ComparisonResult: bad string " << str;
         return invalidResult;
     }
-    std::istringstream iss(str);
 
     float midX, midY;
+    r.filename = parts[0];
 
-    if (!(iss >> r.classId >> midX >> midY >> r.bbox.width >> r.bbox.height >> r.prob >> r.iou)) {
-        LOG(ERROR) << "failed to convert string to ComparisonResult: " << str;
+    try {
+        r.classId =     stoi(parts[1]);
+        midX =          stof(parts[2]);
+        midY =          stof(parts[3]);
+        r.bbox.width =  stof(parts[4]);
+        r.bbox.height = stof(parts[5]);
+        r.prob =        stof(parts[6]);
+        r.iou =         stof(parts[7]);
+    } catch (std::exception& e) {
+        LOG(ERROR) << "ComparisonResult::fromString: bad string " << str << ". " << e.what();
         return invalidResult;
     }
+
     r.bbox.x = midX - r.bbox.width/2;
     r.bbox.y = midY - r.bbox.height/2;
-
-    // get the rest of the line as filename
-    constexpr int kMaxFileNameSize = 64;
-    char buff[kMaxFileNameSize] = {0};
-    iss.getline(buff, kMaxFileNameSize, '\n');
-
-    r.filename = std::string(buff).substr(1); // remove extra space form the beginning
 
     return r;
 }
@@ -201,4 +206,32 @@ int findDetection(const LoadedDetections& dets, const LoadedDetection& needle) {
             return i;
     }
     return -1;
+}
+
+std::vector<string> loadPathsToImages(const string &pathToTrainTxt) {
+    std::vector<std::string> result;
+
+    // retreive the location of train.txt file
+    std::string listPath;
+    auto ios = pathToTrainTxt.find_last_of('/');
+    if (std::string::npos != ios)
+        listPath = pathToTrainTxt.substr(0, ios + 1);
+
+    // load list of image paths from train.txt
+    auto list = getFileContentsAsStringVector(pathToTrainTxt, false);
+    int lineNumber{-1};
+    for (std::string s: list) {
+        ++lineNumber;
+        if (!strEndsWith(s, kDotJpg)) {
+            LOG_N_TIMES(1, ERROR) << "Bad image path. Line#" << lineNumber << " in " << pathToTrainTxt << ": " << s
+                                     << ". Other errors truncated";
+            continue;
+        }
+        s = s.substr(0, s.size() - kDotJpg.size());
+        if ('/' == s.front())
+            result.push_back(s); // absolute image path
+        else
+            result.push_back(listPath + s); // image path relative to train.txt
+    }
+    return result;
 }

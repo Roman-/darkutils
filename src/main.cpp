@@ -33,8 +33,8 @@ static int showUsage(std::string name) {
          << "\t" << name << " extractframes /path/to/videos/ fps similarityThresh=0" << endl
          << "\t" << name << " addemptytxt /path/to/dataset/" << endl
          << "\t" << name << " test /path/to/darkutils/data/tests/"  << endl
-         << "\t" << name << " validate yoloCfgFile weightsFile namesFile /path/to/dataset/ outputFile.duv"  << endl
-         << "\t" << name << " cure /path/to/dataset/ duvFile namesFile" << endl;
+         << "\t" << name << " validate yoloCfgFile weightsFile namesFile /path/to/train.txt outputFile.duv.tsv"  << endl
+         << "\t" << name << " cure /path/to/dataset/ duvFile.tsv namesFile" << endl;
     return -1;
 }
 int main(int argc, char **argv) {

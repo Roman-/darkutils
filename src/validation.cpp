@@ -4,6 +4,7 @@
 #include "easylogging++.h"
 #include <DarkHelp.hpp>
 #include <string>
+#include <vector>
 using namespace std;
 using namespace cv;
 
@@ -11,12 +12,11 @@ using namespace cv;
 ComparisonResults comparePredictions(cv::Mat img, const DarkHelp::PredictionResults& predictions,
                                      const vector<LoadedDetection>& groundTruthDets, const std::string& filename);
 
-void validateDataset(std::string pathToDataset, const std::string& configFile, const std::string& weightsFile,
+void validateDataset(std::string pathToTrainList, const std::string& configFile, const std::string& weightsFile,
             const std::string& namesFile, const std::string outputFile) {
 
-    pathToDataset += (pathToDataset.back() == '/') ? "" : "/";
-    std::vector<std::string> filenames = loadTrainImageFilenames(pathToDataset); // without .ext
-    LOG_IF(filenames.empty(), FATAL) << "Train images not found in dir";
+    vector<string> imagesPaths = loadPathsToImages(pathToTrainList);
+    LOG_IF(imagesPaths.empty(), FATAL) << "Can\'t load train images from " << namesFile;
     bool writable = saveToFile(outputFile, "", false);
     LOG_IF(!writable, FATAL) << "Can\'t write to file " << outputFile;
 
@@ -32,17 +32,17 @@ void validateDataset(std::string pathToDataset, const std::string& configFile, c
     std::string result;
     // .duv format: one file for all images&detections, each detection on separate line, sorted by files. Each line:
     // class x y w h percent IoU image name with spaces.jpg
-    for (int filesIndex = 0; filesIndex < filenames.size(); ++filesIndex) {
-        const string filename = filenames[filesIndex];
-        string pathToImage = pathToDataset + filename + ".jpg";
+    for (size_t filesIndex = 0; filesIndex < imagesPaths.size(); ++filesIndex) {
+        const string filename = imagesPaths[filesIndex];
+        string pathToImage = filename + ".jpg";
         cv::Mat img = imread(pathToImage);
         if (nullptr == img.data || img.cols < 1 || img.rows < 1) {
             LOG(ERROR) << "failed to load image: " << pathToImage;
             continue;
         }
-        vector<LoadedDetection> groundTruthDets = loadedDetectionsFromFile(pathToDataset + filename + ".txt");
+        vector<LoadedDetection> groundTruthDets = loadedDetectionsFromFile(imagesPaths[filesIndex] + ".txt");
         const DarkHelp::PredictionResults predictions = darkhelp.predict(img);
-        LOG(INFO) << (filesIndex+1) << "/" << filenames.size() << " " << filename
+        LOG(INFO) << (filesIndex+1) << "/" << imagesPaths.size() << " " << filename
                     << ".jpg: " << groundTruthDets.size() << " marks"
                     << (groundTruthDets.size() == predictions.size() ? " and " : " but ")
                     << predictions.size() << " predictions";
@@ -50,7 +50,7 @@ void validateDataset(std::string pathToDataset, const std::string& configFile, c
         saveToFile(outputFile, to_string(results), true); // append
 
     }
-    LOG(INFO) << "ValidateDataset finished. Results saved to " << outputFile;
+    LOG(INFO) << "ValidateDataset finished. Results saved to " << outputFile; // TODO how many results?
 }
 
 ComparisonResults comparePredictions(cv::Mat img, const DarkHelp::PredictionResults& predictions,

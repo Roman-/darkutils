@@ -59,7 +59,7 @@ bool ifFileExists(const std::string& path);
 bool createFolderIfDoesntExist(const std::string& path);
 
 // returns true if @param fullString ends with @param ending
-static inline bool strEndsWith(std::string const &fullString, std::string const &ending) {
+inline bool strEndsWith(std::string_view const &fullString, std::string_view const &ending) {
     if (fullString.length() >= ending.length()) {
         return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
     } else {

@@ -12,6 +12,8 @@ struct IouTest {
     float iou;
 };
 
+static const std::string pathToTestDuv = "/invalid_masks/result.duv.tsv";
+
 int runIouTest(const std::string&) {
     constexpr float deltaIou = 1e-6;
     std::vector<IouTest> iouTests = {
@@ -52,7 +54,7 @@ int runDsLoadingTests(const std::string& pathToTrainImgs) {
 }
 
 int runCmpResultsFromStringTests(const std::string&) {
-    const std::string str = "2 0.5 0.5 0.5 0.5 0.5 0.5 file name with spaces";
+    const std::string str = "file name with spaces	2	0.5	0.5	0.5	0.5	0.5	0.5";
     auto r = ComparisonResult::fromString(str);
     if (r.filename != "file name with spaces") {
         LOG(ERROR) << "runCmpResultsFromStringTests: filename is " << r.filename;
@@ -72,7 +74,7 @@ int runCmpResultsFromStringTests(const std::string&) {
 }
 
 int runCmpResultsFromFileTests(const std::string& pathToTestFolder) {
-    const std::string pathToDuv = pathToTestFolder + "/invalid_masks/result.duv";
+    const std::string pathToDuv = pathToTestFolder + pathToTestDuv;
     auto results = comparisonResultsFromFile(pathToDuv);
     if (results.size() != 12) {
         LOG(ERROR) << "runCmpResultsFromFileTests: expected 12 results in " << pathToDuv << ", got " << results.size();
@@ -102,7 +104,8 @@ int runDetectionLoadingTest(const std::string& testsDir) {
     std::map<std::string, int> numDetsInFiles = {
         {"1", 0},
         {"2", 1},
-        {"3", 4}
+        {"3", 4},
+        {"4", 1}
     };
     // chicking amount of loaded detections
     for (const auto& p: numDetsInFiles) {
@@ -125,10 +128,32 @@ int runDetectionLoadingTest(const std::string& testsDir) {
     return 0;
 }
 
+int runTxtLoadingTest(const std::string& testsDir) {
+    auto txtPath = testsDir + "masks_train.txt";
+    auto imgsPaths = loadPathsToImages(txtPath);
+    if (imgsPaths.size() != 4) {
+        LOG(ERROR) << "Cant load 4 image paths from " << txtPath;
+        return 1;
+    }
+    // chicking amount of loaded detections
+    for (const auto& p: imgsPaths) {
+        std::vector<std::string> filesToAccess{p+".txt", p+".jpg"};
+        for (const auto& f: filesToAccess) {
+            if (!ifFileExists(f)) {
+                LOG(ERROR) << "Can\'t access to file " << f;
+                return 1;
+            }
+        }
+    }
+
+    return 0;
+}
+
 int runAllTests(const std::string& testsDataDir) {
     static const std::vector<std::function<int(const std::string&)>> funcsToTest = {
           &runIouTest
         , &runDetectionLoadingTest
+        , &runTxtLoadingTest
         , &runCmpResultsFromStringTests
         , &runCmpResultsFromFileTests
         , &runDsLoadingTests

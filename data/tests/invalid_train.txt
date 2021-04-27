@@ -1,0 +1,4 @@
+invalid_masks/correct.jpg
+invalid_masks/extra_face.jpg
+invalid_masks/skipped_mask.jpg
+invalid_masks/wrong_class.jpg

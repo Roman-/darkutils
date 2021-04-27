@@ -1,0 +1,4 @@
+masks_files/1.jpg
+masks_files/2.jpg
+masks_files/3.jpg
+masks_files/4.jpg

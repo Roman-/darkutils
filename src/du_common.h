@@ -54,7 +54,7 @@ struct ComparisonResult {
     float iou;
     std::string filename; // with no extension nor slashes
 
-    // outputs detection as "c x y w h % iou filename", where (x,y) is relative mid-point, (w,h) is relative size
+    // outputs detection as "filename c x y w h % iou", where (x,y) is relative mid-point, (w,h) is relative size
     std::string toString() const;
     // read from string in .duv format
     static ComparisonResult fromString(const std::string& str);
@@ -84,5 +84,8 @@ float intersectionOverUnion(const cv::Rect2f& r1, const cv::Rect2f& r2);
 // \param labeledFiles - if true, only list files that has both .jpg and .txt.
 // \param labeledFiles if false, returns list of filenames that has .jpg but do not have .txt files for them.
 std::vector<std::string> loadTrainImageFilenames(const std::string& path, bool labeledFiles = true);
+
+// returns paths to images written in train.txt relative to application (or absolute paths) without .jpg extention
+std::vector<std::string> loadPathsToImages(const std::string& pathToTrainTxt);
 
 #endif // DU_COMMON_H
