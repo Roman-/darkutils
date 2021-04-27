@@ -12,7 +12,7 @@ void drawBbox(cv::Mat& img, const cv::Rect& bbox, const cv::Scalar& color, int w
     cv::rectangle(img, bbox, color, width, cv::LINE_8, 0);
 }
 
-void drawBbox(cv::Mat& img, const cv::Rect2f& bbox, const cv::Scalar& color, int width) {
+void drawBbox(cv::Mat& img, const cv::Rect2d& bbox, const cv::Scalar& color, int width) {
     cv::Rect absBbox(bbox.x * img.cols, bbox.y * img.rows, bbox.width * img.cols, bbox.height * img.rows);
     drawBbox(img, absBbox, color, width);
 }
@@ -25,7 +25,7 @@ void drawBboxCrossed(cv::Mat& img, const cv::Rect& bbox, const cv::Scalar& color
     cv::line(img, cv::Point(bbox.x, bbox.br().y), cv::Point(bbox.br().x, bbox.y), color, crossThickness, cv::LINE_8, 0);
 }
 
-void drawBboxCrossed(cv::Mat& img, const cv::Rect2f& bbox, const cv::Scalar& color, int rectThickness, int crossThickness) {
+void drawBboxCrossed(cv::Mat& img, const cv::Rect2d& bbox, const cv::Scalar& color, int rectThickness, int crossThickness) {
     cv::Rect absBbox(bbox.x * img.cols, bbox.y * img.rows, bbox.width * img.cols, bbox.height * img.rows);
     drawBboxCrossed(img, absBbox, color, rectThickness, crossThickness);
 }

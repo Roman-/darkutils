@@ -54,7 +54,7 @@ int runDsLoadingTests(const std::string& pathToTrainImgs) {
 }
 
 int runCmpResultsFromStringTests(const std::string&) {
-    const std::string str = "file name with spaces	2	0.5	0.5	0.5	0.5	0.5	0.5";
+    const std::string str = "file name with spaces	2	0.5	0.5	0.5	0.5	0.5	0.5	f";
     auto r = ComparisonResult::fromString(str);
     if (r.filename != "file name with spaces") {
         LOG(ERROR) << "runCmpResultsFromStringTests: filename is " << r.filename;

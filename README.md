@@ -19,12 +19,12 @@ sudo ldconfig
 # build && install darkhelp
 sudo apt-get install cmake libtclap-dev libmagic-dev libopencv-dev
 cd ~
-git clone https://github.com/Roman-/darkhelp.git
-cd darkhelp && mkdir build && cd build
+git clone https://github.com/stephanecharette/DarkHelp.git
+cd DarkHelp && mkdir build && cd build
 cmake -DCMAKE_BUILD_TYPE=Release ..
 make
 make package
-sudo dpkg -i ./darkhelp-1.1.3-3101-Linux-x86_64-Ubuntu-20.04.deb
+sudo dpkg -i ./*.deb
 ```
 
 ## Fixing your darknet dataset
@@ -35,9 +35,13 @@ ights ../data/tests/masks_files/obj.names ../data/tests/masks_files/ result.duv.
 ```
 the result.duv.tsv file will be generated. Each line of the file has the following format (tab-separated):
 ```
-path c x y w h p iou
+path c x y w h p iou treated
 ```
-, where `path` is path to image file without extension, e.g. masks2/img0001. It's either relative to the location of train.txt file or an absolute path, depending on how the images are referred in train.txt. May contain whitespaces but not tabs. `c` is integer class id starting with 0, `x,y,w,h` are relative coords of detection (0-1), `p` is darknet probability (0-1), iou is IntersectionOverUnion (0-1) between your mark bbox and what darknet has predicted, 
+, where `path` is path to image file without extension, e.g. masks2/img0001. It's either relative to the location of train.txt file or an absolute path, depending on how the images are referred in train.txt. May contain whitespaces but not tabs.
+
+`c` is integer class id starting with 0, `x,y,w,h` are relative coords of detection (0-1), `p` is darknet probability (0-1), iou is IntersectionOverUnion (0-1) between your mark bbox and what darknet has predicted.
+
+The last value `treated` is single char 't' or 'f' which is used when you **cure** your dataset. By default they're all 'f' which stays for false. As you view the dataset and add/skip your potentially erroneous marks, viewed detections becomes maked as 't'. When this happens, original file.duv.tsv is overwritten.
 
 # how to interpret .duv.tsv results
 

@@ -10,11 +10,12 @@ using namespace std;
 static const std::string kDotJpg{".jpg"};
 
 std::string ComparisonResult::toString() const {
-    float x = bbox.x + bbox.width / 2;
-    float y = bbox.y + bbox.height / 2;
+    double x = bbox.x + bbox.width / 2;
+    double y = bbox.y + bbox.height / 2;
+    char treatedChar = treated ? 't' : 'f';
     ostringstream ss;
     ss << filename << '\t' << classId << '\t' << x << '\t' << y << '\t' << bbox.width
-           << '\t' << bbox.height << '\t' << prob << '\t' << iou;
+           << '\t' << bbox.height << '\t' << prob << '\t' << iou << '\t' << treatedChar;
     return ss.str();
 }
 
@@ -40,10 +41,11 @@ std::string LoadedDetection::toHumanString() const {
 }
 
 std::string LoadedDetection::toString() const {
-    float x = bbox.x + bbox.width / 2;
-    float y = bbox.y + bbox.height / 2;
-    return to_string(classId) + " " + to_string(x) + " " + to_string(y)
-            + " " + to_string(bbox.width) + " " + to_string(bbox.height);
+    double x = bbox.x + bbox.width / 2.;
+    double y = bbox.y + bbox.height / 2.;
+    stringstream ss;
+    ss << classId << ' ' << x << ' ' << y << ' ' << bbox.width << ' ' << bbox.height;
+    return ss.str();
 }
 
 bool LoadedDetection::isValid() const {
@@ -54,7 +56,7 @@ bool LoadedDetection::isValid() const {
         && bbox.height >= 0 && bbox.height <= 1;
 }
 
-float intersectionOverUnion(const cv::Rect2f& r1, const cv::Rect2f& r2) {
+float intersectionOverUnion(const cv::Rect2d& r1, const cv::Rect2d& r2) {
     float r1left = r1.x;
     float r1right = r1.x + r1.width;
     float r1top = r1.y;
@@ -118,7 +120,7 @@ LoadedDetections loadedDetectionsFromFile(const std::string& path) {
         }
 
         int classId;
-        float midX, midY, relW, relH;
+        double midX, midY, relW, relH;
         try {
             classId = stoi(parts[0].c_str());
             midX = stof(parts[1].c_str());
@@ -130,7 +132,7 @@ LoadedDetections loadedDetectionsFromFile(const std::string& path) {
             continue;
         }
 
-        cv::Rect2f bbox(midX - relW/2, midY - relH/2, relW, relH);
+        cv::Rect2d bbox(midX - relW/2, midY - relH/2, relW, relH);
         LoadedDetection d{classId, bbox, extractFilenameFromFullPath(path)};
         result.push_back(d);
     }
@@ -139,16 +141,17 @@ LoadedDetections loadedDetectionsFromFile(const std::string& path) {
 }
 
 ComparisonResult ComparisonResult::fromString(const std::string& str) {
-    static const ComparisonResult invalidResult{-1, cv::Rect2f(), -1, -1, ""};
+    static const ComparisonResult invalidResult = ComparisonResult::generateInvalid();
     ComparisonResult r{invalidResult};
     vector<string> parts = splitString(str, '\t');
-    // "filename c x y w h p iou", tab-separated
-    if (parts.size() != 8) {
+    // "filename c x y w h p iou treated", tab-separated
+    if (parts.size() != 9 || (parts[8] != "t" && parts[8] != "f")) {
         LOG(ERROR) << "ComparisonResult: bad string " << str;
         return invalidResult;
     }
 
-    float midX, midY;
+    double midX, midY;
+    char treatedChar;
     r.filename = parts[0];
 
     try {
@@ -159,6 +162,7 @@ ComparisonResult ComparisonResult::fromString(const std::string& str) {
         r.bbox.height = stof(parts[5]);
         r.prob =        stof(parts[6]);
         r.iou =         stof(parts[7]);
+        treatedChar =        parts[8].front();
     } catch (std::exception& e) {
         LOG(ERROR) << "ComparisonResult::fromString: bad string " << str << ". " << e.what();
         return invalidResult;
@@ -166,12 +170,28 @@ ComparisonResult ComparisonResult::fromString(const std::string& str) {
 
     r.bbox.x = midX - r.bbox.width/2;
     r.bbox.y = midY - r.bbox.height/2;
+    r.treated = (treatedChar == 't');
 
     return r;
 }
 
 bool ComparisonResult::isValid() const {
     return (!filename.empty() && classId >= 0 && iou >= 0 && prob >= 0);
+}
+
+ComparisonResult ComparisonResult::generateInvalid() {
+    return ComparisonResult{-1, cv::Rect2d(-1,-1,-1,-1), -1, -1, "", false};
+}
+
+bool ComparisonResult::isToAdd() const {
+    return !treated
+            && prob >= kValidationProbThresh
+            && iou < kStrongIntersectionThresh;
+}
+bool ComparisonResult::isToRemove() const {
+    return !treated
+            && prob < kValidationProbThresh
+            && iou < kStrongIntersectionThresh;
 }
 
 LoadedDetection ComparisonResult::toLoadedDet() const {

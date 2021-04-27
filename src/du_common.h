@@ -14,8 +14,8 @@ constexpr float kStrongIntersectionThresh = 0.45;
 constexpr float kValidationProbThresh = 0.15;
 
 // returns relaive bbox of prediction result. Note that x,y are still the coordinates of top-left corner, just in [0,1] interval.
-inline cv::Rect2f relativeBbox(const DarkHelp::PredictionResult& r) {
-    return cv::Rect2f(
+inline cv::Rect2d relativeBbox(const DarkHelp::PredictionResult& r) {
+    return cv::Rect2d(
             r.original_point.x - r.original_size.width/2,
             r.original_point.y - r.original_size.height/2,
             r.original_size.width,
@@ -31,7 +31,7 @@ inline float getProb(const DarkHelp::PredictionResult& r, int classId) {
 struct LoadedDetection {
     int classId;
     // relative bbox
-    cv::Rect2f bbox;
+    cv::Rect2d bbox;
     std::string filename;
 
     // to darknet-compatible string (class x y w h), where {x,y} is midpoint
@@ -48,18 +48,25 @@ std::string to_string(const LoadedDetections& dets);
 int findDetection(const LoadedDetections& dets, const LoadedDetection& needle);
 
 struct ComparisonResult {
-    int classId; // as predicted by darknet
-    cv::Rect2f bbox; // relative bb as predicted by darknet
+    int classId = -1; // as predicted by darknet
+    cv::Rect2d bbox; // relative bb as predicted by darknet
     float prob; // probability of that class (0-1). If marked by human but wasn't detected by darknet, prob = -1
     float iou;
     std::string filename; // with no extension nor slashes
+    bool treated; // manually wath
 
-    // outputs detection as "filename c x y w h % iou", where (x,y) is relative mid-point, (w,h) is relative size
+    // outputs detection as "filename c x y w h % iou treated", where (x,y) is relative mid-point, (w,h) is relative size
     std::string toString() const;
     // read from string in .duv format
     static ComparisonResult fromString(const std::string& str);
     // returns false if classId < 0, prop<0, iou < 0 or filename is empty or slashy
     bool isValid() const;
+    // returns ComparisonResult object in obviously invalid state
+    static ComparisonResult generateInvalid();
+    // returns true if it's likely to be unmarked positive which needs to be added to .txt
+    bool isToAdd() const;
+    // returns true if it's likely to be marked false negative which needs to be removed from the .txt
+    bool isToRemove() const;
     // convert to "loaded detection"
     LoadedDetection toLoadedDet() const;
 };
@@ -78,7 +85,7 @@ inline std::string to_human_string(const cv::Rect_<Tp> r) {
 }
 
 // area of Intersection over area of Union [0-1]
-float intersectionOverUnion(const cv::Rect2f& r1, const cv::Rect2f& r2);
+float intersectionOverUnion(const cv::Rect2d& r1, const cv::Rect2d& r2);
 
 // returns list of filenames (training images) in folder without extension, sorted alphabetically
 // \param labeledFiles - if true, only list files that has both .jpg and .txt.

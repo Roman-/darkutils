@@ -9,11 +9,11 @@ void customAnnotateImage(cv::Mat img);
 // absolute bbox
 void drawBbox(cv::Mat& img, const cv::Rect& bbox, const cv::Scalar& color, int width = 1);
 // relative bbox
-void drawBbox(cv::Mat& img, const cv::Rect2f& bbox, const cv::Scalar& color, int width = 1);
+void drawBbox(cv::Mat& img, const cv::Rect2d& bbox, const cv::Scalar& color, int width = 1);
 // absolute bbox & cross inside
 void drawBboxCrossed(cv::Mat& img, const cv::Rect& bbox, const cv::Scalar& color, int rectWidth = 1, int crossWidth = 1);
 // relative bbox & cross inside
-void drawBboxCrossed(cv::Mat& img, const cv::Rect2f& bbox, const cv::Scalar& color, int rectWidth = 1, int crossWidth = 1);
+void drawBboxCrossed(cv::Mat& img, const cv::Rect2d& bbox, const cv::Scalar& color, int rectWidth = 1, int crossWidth = 1);
 
 // draw bboxes and percentage
 void annotateCustom(cv::Mat& img, const DarkHelp::PredictionResults& results
