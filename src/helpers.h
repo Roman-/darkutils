@@ -59,7 +59,7 @@ bool ifFileExists(const std::string& path);
 bool createFolderIfDoesntExist(const std::string& path);
 
 // returns true if @param fullString ends with @param ending
-inline bool strEndsWith(std::string_view const &fullString, std::string_view const &ending) {
+inline bool strEndsWith(const std::string& fullString, const std::string& ending) {
     if (fullString.length() >= ending.length()) {
         return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
     } else {
@@ -68,7 +68,7 @@ inline bool strEndsWith(std::string_view const &fullString, std::string_view con
 }
 
 // removes all characters c from string
-static inline std::string removeAllChars(const std::string& str, char c) {
+inline std::string removeAllChars(const std::string& str, char c) {
     std::string s(str);
     s.erase(std::remove(s.begin(), s.end(), c), s.end());
     return s;

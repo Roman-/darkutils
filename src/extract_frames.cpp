@@ -29,7 +29,7 @@ void extractFrames(const std::string& pathToVids, double fps, float similarityTh
         std::string filePath = pathToVids + "/" + vidFileName;
         VideoCapture cap(filePath);
         double captureFps = cap.get(CAP_PROP_FPS);
-        int totalFrames = cap.get(CV_CAP_PROP_FRAME_COUNT);
+        int totalFrames = cap.get(CAP_PROP_FRAME_COUNT);
         if (!cap.isOpened()) {
             LOG(ERROR) << "can not open stream: " << filePath;
             continue;

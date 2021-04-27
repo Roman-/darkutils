@@ -23,9 +23,9 @@ void markVid(const std::string& configFile, const std::string& weightsFile,
             const std::string& namesFile, const std::string& inputFile) {
     cv::VideoCapture cap(inputFile);
     LOG_IF(!cap.isOpened(), FATAL) << "cant open video " << inputFile;
-    float fps = cap.get(CV_CAP_PROP_FPS);
-    cv::Size vidSize(cap.get(CV_CAP_PROP_FRAME_WIDTH), cap.get(CV_CAP_PROP_FRAME_HEIGHT));
-    const int totalFrames = cap.get(CV_CAP_PROP_FRAME_COUNT);
+    float fps = cap.get(CAP_PROP_FPS);
+    cv::Size vidSize(cap.get(CAP_PROP_FRAME_WIDTH), cap.get(CAP_PROP_FRAME_HEIGHT));
+    const int totalFrames = cap.get(CAP_PROP_FRAME_COUNT);
     LOG(INFO) << "Opened video, " << totalFrames << " total frames, " << fps << " fps, "
         << vidSize.width << "x" << vidSize.height;
     constexpr const char* outFilename = "darkutils_out.mp4";

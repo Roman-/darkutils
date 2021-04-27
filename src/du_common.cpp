@@ -7,7 +7,7 @@
 
 using namespace std;
 
-static constexpr const std::string_view kDotJpg = std::string_view(".jpg");
+static const std::string kDotJpg{".jpg"};
 
 std::string ComparisonResult::toString() const {
     float x = bbox.x + bbox.width / 2;
