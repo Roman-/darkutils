@@ -56,7 +56,7 @@ bool LoadedDetection::isValid() const {
         && bbox.height >= 0 && bbox.height <= 1;
 }
 
-float intersectionOverUnion(const cv::Rect2d& r1, const cv::Rect2d& r2) {
+float intersectionOverUnioneconst cv::Rect2d& r1, const cv::Rect2d& r2) {
     float r1left = r1.x;
     float r1right = r1.x + r1.width;
     float r1top = r1.y;
@@ -198,15 +198,15 @@ LoadedDetection ComparisonResult::toLoadedDet() const {
     return LoadedDetection{classId, bbox, filename};
 }
 
-ComparisonResults comparisonResultsFromFile(const std::string& filename) {
+ComparisonResults comparisonResultsFromFile(const std::string& filename, bool ignoreTreatedDets) {
     ComparisonResults rs;
     auto lines = getFileContentsAsStringVector(filename);
     for (const auto& l: lines) {
         ComparisonResult r = ComparisonResult::fromString(l);
-        if (r.isValid()) {
-            rs.push_back(r);
-        } else {
+        if (!r.isValid()) {
             LOG(ERROR) << "Can not parse line to ComparisonResults: " << l;
+        } else if (!ignoreTreatedDets || !r.treated) {
+            rs.push_back(r);
         }
     }
 
@@ -214,10 +214,11 @@ ComparisonResults comparisonResultsFromFile(const std::string& filename) {
 }
 
 int findDetection(const LoadedDetections& dets, const LoadedDetection& needle) {
+    const string needleFilename = extractFilenameFromFullPath(needle.filename);
     constexpr float kIouThresh = 0.99; // if iou(r1, r2) > 0.99, consider r1 ~= r2
     for (int i = 0; i < int(dets.size()); ++i) {
         if (dets[i].classId == needle.classId
-                && dets[i].filename == needle.filename
+                && extractFilenameFromFullPath(dets[i].filename) == needleFilename
                 && intersectionOverUnion(dets[i].bbox, needle.bbox) > kIouThresh)
             return i;
     }

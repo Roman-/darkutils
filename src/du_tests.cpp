@@ -75,7 +75,7 @@ int runCmpResultsFromStringTests(const std::string&) {
 
 int runCmpResultsFromFileTests(const std::string& pathToTestFolder) {
     const std::string pathToDuv = pathToTestFolder + pathToTestDuv;
-    auto results = comparisonResultsFromFile(pathToDuv);
+    auto results = comparisonResultsFromFile(pathToDuv, false);
     if (results.size() != 12) {
         LOG(ERROR) << "runCmpResultsFromFileTests: expected 12 results in " << pathToDuv << ", got " << results.size();
         return -1;

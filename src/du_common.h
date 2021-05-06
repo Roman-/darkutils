@@ -76,7 +76,7 @@ inline bool ProbIsBigger(const ComparisonResult& lhs, const ComparisonResult& rh
 inline bool AreaIsBigger(const ComparisonResult& lhs, const ComparisonResult& rhs) {return lhs.bbox.area() > rhs.bbox.area();}
 // newline-separated results, with "\n" at the end as well
 std::string to_string(const ComparisonResults& results);
-ComparisonResults comparisonResultsFromFile(const std::string& filename);
+ComparisonResults comparisonResultsFromFile(const std::string& filename, bool ignoreTreatedDets);
 
 // rect to human-readable string (not compatible with darknet mark .txt files!)
 template<class Tp>

@@ -12,11 +12,14 @@ constexpr int kWindowHeight = 600;
 
 // returns index of next ComparisonResult to show - "to add" or "to remove"
 // returns -1 if there are no more cmp results to add
-int nextCmpToShow(const ComparisonResults& cmpResults, bool toAdd) {
+// fixedClass: if fixedClass.first == true, we only return detection of class fixedClass.second
+int nextCmpToShow(const ComparisonResults& cmpResults, bool toAdd, std::pair<bool, int> fixedClass) {
     int index = -1;
     for (size_t i = 0; i < cmpResults.size(); ++i) {
         auto& r = cmpResults[i];
-        if (r.treated) {
+        if (r.treated || (toAdd && !r.isToAdd()) || (!toAdd && !r.isToRemove())) {
+            continue;
+        } else if (fixedClass.first && fixedClass.second != r.classId) {
             continue;
         } else if (index < 0) {
             index = i;
@@ -59,12 +62,9 @@ void cureDataset(const std::string& pathToDuv
     bool backupFolderCreated = createFolderIfDoesntExist(backupFolderPath);
     LOG_IF(!backupFolderCreated, ERROR) << "failed to create " << backupFolderPath << ", backups will be omitted";
 
-    // TODO stopped here: update .duv and save it (overwrite) as you mark images. Backup on creation.
-
     // load
     std::string workPath = extractFileLocationFromFullPath(pathToDuv);
-    std::vector<ComparisonResult> cmpResults = comparisonResultsFromFile(pathToDuv);
-    // to_string(cmpResults) generates thing to save;
+    std::vector<ComparisonResult> cmpResults = comparisonResultsFromFile(pathToDuv, false);
     std::vector<std::string> names = getFileContentsAsStringVector(pathToNames);
 
     // Before we start to cure, backup original .duv file in backups folder
@@ -78,27 +78,45 @@ void cureDataset(const std::string& pathToDuv
     }
 
     // count toAdd and toRemove indeces; operate with indeces
-    size_t numToAdd{0}, numToRemove{0};
+    size_t numToAdd{0}, numToRemove{0}, numToAddReviewed{0}, numToRemoveReviewed{0}, numTreated{0};
     for (auto& r: cmpResults) {
+        if (r.treated)
+            ++numTreated;
         if (r.isToAdd())
             ++numToAdd;
-        else if (r.isToRemove())
+        if (r.isToRemove())
             ++numToRemove;
     }
 
-    LOG(INFO) << "loaded " << numToAdd << " marks to add and " << numToRemove << " marks to remove";
+    LOG(INFO) << "Loaded " << cmpResults.size() << " cmpResults in total; "
+              << numToAdd << " marks to add and " << numToRemove << " marks to remove. "
+              << numTreated << " treated";
 
     // show things to add interactively
     bool showingToAdd = true;
-    static const std::set<char> allowedKeysInAddMode =    {'y', 'n', char(27), 's'}; // accept, no (dont accept), exit, switch
-    static const std::set<char> allowedKeysInRemoveMode = {'d', 'k', char(27), 's'}; // delete, keep (dont delete), exit, switch
+    static const std::set<char> allowedKeysInAddMode =    {'y', 'n', char(27), 's', 'f'}; // accept, no (dont accept), exit, switch, fixclass
+    static const std::set<char> allowedKeysInRemoveMode = {'d', 'k', char(27), 's', 'f'}; // delete, keep (dont delete), exit, switch, fixclass
     int key; // key pressed by user
     cv::namedWindow(windowName, cv::WINDOW_NORMAL);
     cv::resizeWindow(windowName, kWindowWidth, kWindowHeight);
+    // in fixclass mode, we only show detections of the same class until they're gone. First = enabled
+    std::pair<bool, int> fixedClass = std::make_pair(false, 0);
     while (true) {
-        int index = nextCmpToShow(cmpResults, showingToAdd);
+        LOG(INFO) << "Progress: " << numToAddReviewed << "/" << numToAdd << " to add,"
+                     << numToRemoveReviewed << "/" << numToRemove << " to remove";
+        int index = nextCmpToShow(cmpResults, showingToAdd, fixedClass);
+
+        // see if we're failed to get next image because this class' images are gone
+        if (index < 0 && fixedClass.first) {
+            index = nextCmpToShow(cmpResults, !showingToAdd, std::make_pair(false, 0));
+            if (index >= 0) {
+                fixedClass.second = cmpResults[index].classId;
+            }
+        }
+
+        // see if we're failed but still have images to delete (or to add, if we were deleting before)
         if (index < 0) {
-            int otherIndex = nextCmpToShow(cmpResults, !showingToAdd);
+            int otherIndex = nextCmpToShow(cmpResults, !showingToAdd, fixedClass);
             if (otherIndex < 0) {
                 LOG(INFO) << "Cure procedure finished";
                 break;
@@ -121,6 +139,7 @@ void cureDataset(const std::string& pathToDuv
         cv::Mat imgScaled = resizedToWindow(img);
         LoadedDetections dets = loadedDetectionsFromFile(detsPath);
         const std::string pathToTxtBackup = std::string(backupFolderPath) + "/" + cr.filename + ".txt";
+        std::string ifFixedString = fixedClass.first ? " [FIXED]" : "";
 
         if (showingToAdd) {
             // see if we've already added this
@@ -135,7 +154,8 @@ void cureDataset(const std::string& pathToDuv
             cv::line(imgScaled, cv::Point(0,0), cv::Point(cr.bbox.tl().x * imgScaled.cols, cr.bbox.tl().y * imgScaled.rows)
                         , colorByClass(cr.classId), 2, cv::LINE_8, 0);
             drawBbox(imgScaled, cr.bbox, colorByClass(cr.classId), 1);
-            const std::string txt = "Add this " + names.at(cr.classId) + " (" + to_string(int(cr.prob*100)) + "%) to dataset? y/n";
+            const std::string txt = "Add this " + names.at(cr.classId) + ifFixedString
+                    + " (" + to_string(int(cr.prob*100)) + "%) to dataset? y/n   | file: " + cr.filename;
             cv::putText(imgScaled, txt, cv::Point(0,25), cv::FONT_HERSHEY_PLAIN, 1, cvColorWhite, 3);
             cv::putText(imgScaled, txt, cv::Point(0,25), cv::FONT_HERSHEY_PLAIN, 1, cvColorBlack, 1);
             imshow(windowName, imgScaled);
@@ -156,12 +176,14 @@ void cureDataset(const std::string& pathToDuv
                 // mark detection as treated
                 cr.treated = true;
                 cr.iou = 1; // maked = detected -> 100% match
-                saveToFile(pathToDuv, to_string(cmpResults));
+                saveToFile(pathToDuv, to_string(cmpResults)); // is it really saved?
+                ++numToAddReviewed;
             } else if ('n' == key) {
                 // mark detection as treated (ignored)
                 LOG(INFO) << "mark ComparisonResult as treated and save .duv";
                 cr.treated = true;
                 saveToFile(pathToDuv, to_string(cmpResults));
+                ++numToAddReviewed;
             }
         } else {
             // see if we've already removed
@@ -175,7 +197,8 @@ void cureDataset(const std::string& pathToDuv
             drawBboxCrossed(imgScaled, cr.bbox, colorByClass(cr.classId), 1, 1);
             cv::line(imgScaled, cv::Point(0,0), cv::Point(cr.bbox.tl().x * imgScaled.cols, cr.bbox.tl().y * imgScaled.rows)
                     , colorByClass(cr.classId), 2, cv::LINE_8, 0);
-            const std::string txt = "REMOVE this " + names.at(cr.classId) + " from dataset? d/k";
+            const std::string txt = "REMOVE this " + names.at(cr.classId) + ifFixedString
+                    + " from dataset? d/k   | file: " + cr.filename;
             cv::putText(imgScaled, txt, cv::Point(0,25), cv::FONT_HERSHEY_PLAIN, 1, cvColorWhite, 3);
             cv::putText(imgScaled, txt, cv::Point(0,25), cv::FONT_HERSHEY_PLAIN, 1, cvColorDarkRed, 1);
             imshow(windowName, imgScaled);
@@ -197,11 +220,13 @@ void cureDataset(const std::string& pathToDuv
                 // also eliminate from .duv.tsv
                 cmpResults.erase(cmpResults.begin() + index);
                 saveToFile(pathToDuv, to_string(cmpResults));
+                ++numToRemoveReviewed;
             } else if ('k' == key) {
                 // mark as treated
                 LOG(INFO) << "mark ComparisonResult as treated and save .duv";
                 cr.treated = true;
                 saveToFile(pathToDuv, to_string(cmpResults));
+                ++numToRemoveReviewed;
             }
         }
         if (27 == key) {
@@ -209,6 +234,8 @@ void cureDataset(const std::string& pathToDuv
         } else if ('s' == key) {
             LOG(INFO) << "switching toAdd/toRemove mode."; // TODO stats?
             showingToAdd = !showingToAdd;
+        } else if ('f' == key) {
+            fixedClass.first = !fixedClass.first;
         }
     }
 }
