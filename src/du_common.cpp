@@ -56,7 +56,7 @@ bool LoadedDetection::isValid() const {
         && bbox.height >= 0 && bbox.height <= 1;
 }
 
-float intersectionOverUnioneconst cv::Rect2d& r1, const cv::Rect2d& r2) {
+float intersectionOverUnion(const cv::Rect2d& r1, const cv::Rect2d& r2) {
     float r1left = r1.x;
     float r1right = r1.x + r1.width;
     float r1top = r1.y;
